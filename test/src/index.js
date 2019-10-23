@@ -1,7 +1,8 @@
-import Moon from "../../src/index.js";
+import Moon from "../../libs/byy";
 
-console.log(1111111, Moon);
+import App from "./components/App.js";
 
 new Moon({
-  el: "#app"
+  el: "#app",
+  render: fn => fn(App)
 });

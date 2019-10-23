@@ -1,11 +1,11 @@
 /// <reference path="../types/typings.d.ts">
 
 import { initMoon } from "./init";
-import { _warn } from "../../../publics/index";
+import { warn } from "../../../publics/index";
 
-function Moon(options: M_Options): void {
+function Moon(options: Object): void {
   if (!(this instanceof Moon)) {
-    _warn('Vue is a constructor and should be called with the `new` keyword')
+    warn('Vue is a constructor and should be called with the `new` keyword');
   }
 
   this._init(options);

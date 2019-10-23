@@ -1,35 +1,48 @@
-interface State {
+interface Data {
   (): Object;
 }
 
-interface $CTRL {
-  (name: string, value: any): void;
+interface ParentComponent {
+  (): Component;
+}
+
+interface Ctrl {
+  (name: string, value?: any): void;
 }
 
 interface $WATCHER_CALLBACK {
   (newVal: any, oldVal: any): void;
 }
 
-interface $WATCHER {
-  (name: string, callback: $WATCHER_CALLBACK): void; 
+interface VNode {
+  tag: string;
+  staticClass?: string;
+  class?: Object;
+  style?: Object;
+  children: Array<VNode>;
+  id?: string;
+  on?: Object;
+  emit?: Function;
 }
 
-interface Moon {
-  $el: HTMLElement;
-  $set: $CTRL;
-  $get: $CTRL;
-  $options: M_Options;
-  $watcher: $WATCHER;
-  [name: string]: any;
-}
-
-interface M_Options {
+interface Options {
   el: string;
-  state?: State;
+  render: Function;
+}
+
+interface Component {
+  $el: HTMLElement;
+  $set: Ctrl;
+  $get: Ctrl;
+  $on: Function;
+  $emit: Function;
+  $nextTick: Function;
+  $parent: ParentComponent;
+  data?: Data;
   methods?: Object;
   props?: Object;
+  watch?: Object;
   name?: string;
-  watcher: Object;
   componentWillInit?: Function;
   componentDidInit?: Function;
   componentWillUpdate?: Function;
@@ -37,4 +50,5 @@ interface M_Options {
   componentWillDestroy?: Function;
   componentDidDestroy?: Function;
   render?: Function;
+  _children: Array<Component>;
 }

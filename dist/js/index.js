@@ -63,7 +63,7 @@
 /******/
 /******/ 	var hotApplyOnUpdate = true;
 /******/ 	// eslint-disable-next-line no-unused-vars
-/******/ 	var hotCurrentHash = "b9bb9927e259f9a8e832";
+/******/ 	var hotCurrentHash = "bef1e52d8bf116e35f63";
 /******/ 	var hotRequestTimeout = 10000;
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotCurrentChildModule;
@@ -796,14 +796,27 @@
 /************************************************************************/
 /******/ ({
 
+/***/ "../libs/byy.js":
+/*!**********************!*\
+  !*** ../libs/byy.js ***!
+  \**********************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+eval("__webpack_require__.r(__webpack_exports__);\nfunction initMoon(Moon) {\n    Moon.prototype._init = function (options) {\n        this.$options = options;\n    };\n}\n\nfunction _warn(content) {\n    console.error(\"[ Moon Warning ]:\\n\" + content);\n}\n\nfunction Moon(options) {\n    if (!(this instanceof Moon)) {\n        _warn('Vue is a constructor and should be called with the `new` keyword');\n    }\n    this._init(options);\n}\ninitMoon(Moon);\n\n/* harmony default export */ __webpack_exports__[\"default\"] = (Moon);\n\n\n//# sourceURL=webpack:///../libs/byy.js?");
+
+/***/ }),
+
 /***/ "./src/index.js":
 /*!**********************!*\
   !*** ./src/index.js ***!
   \**********************/
-/*! no static exports found */
-/***/ (function(module, exports) {
+/*! no exports provided */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
-eval("// import Moon from \"../src/index.js\";\r\n\r\nnew Moon({\r\n  el: \"#app\"\r\n});\n\n//# sourceURL=webpack:///./src/index.js?");
+"use strict";
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _libs_byy__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../libs/byy */ \"../libs/byy.js\");\n\nnew _libs_byy__WEBPACK_IMPORTED_MODULE_0__[\"default\"]({\n  el: \"#app\"\n});\n\n//# sourceURL=webpack:///./src/index.js?");
 
 /***/ }),
 
