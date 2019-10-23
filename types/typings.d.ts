@@ -27,6 +27,7 @@ interface VNode {
 
 interface Options {
   el: string;
+  name: string;
   render: Function;
 }
 
