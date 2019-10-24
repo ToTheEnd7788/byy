@@ -16,11 +16,8 @@ interface $WATCHER_CALLBACK {
 
 interface VNode {
   tag: string;
-  staticClass?: string;
-  class?: Object;
-  style?: Object;
   children: Array<VNode>;
-  id?: string;
+  attrs?: Object;
   on?: Object;
   emit?: Function;
 }
@@ -39,6 +36,7 @@ interface Component {
   $emit: Function;
   $nextTick: Function;
   $parent: ParentComponent;
+  vNode: VNode;
   data?: Data;
   methods?: Object;
   props?: Object;
