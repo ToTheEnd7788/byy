@@ -1,3 +1,5 @@
+import TestOne from "./TestOne";
+
 export default {
   name: "app",
 
@@ -20,7 +22,7 @@ export default {
   render(h) {
     return h('div', {
       attrs: {
-        id: this.msg,
+        id: this.$get("msg"),
         style: {
           color: "red"
         },
@@ -32,10 +34,11 @@ export default {
           className: "ccc"
         },
         on: {
-          click: this.test
+          click: this.$get('test')
         }
       }, [
-        this.spanContent
+        this.$get('spanContent'),
+        h(TestOne)
       ])
     ]);
   }

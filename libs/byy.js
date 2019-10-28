@@ -3,107 +3,39 @@ function warn(content) {
 }
 //# sourceMappingURL=index.js.map
 
-var transformMethods = function (vm) {
-    for (var name in vm.methods) {
-        vm[name] = vm.methods[name].bind(vm);
-    }
-};
-var transformDatas = function (vm) {
-    for (var key in vm.data) {
-        vm[key] = vm.data[key];
-    }
-};
-//# sourceMappingURL=compiler.js.map
-
 function initMoon(Moon) {
     Moon.prototype._init = function (options) {
-        this._initOptions(options);
-    };
-    Moon.prototype._initOptions = function (options) {
         var el = options.el, render = options.render;
-        var _el = document.querySelector(el);
-        if (!_el) {
-            warn("The mounted element is not exsist, please check < el: " + el + " >");
-            return;
-        }
-        if (!render) {
-            warn("The component's render function is required");
-            return;
-        }
-        this._el = _el;
-        var frag = document.createDocumentFragment();
-        this._el
-            .appendChild(this._createFragment(render(this._createElement.bind(this))));
+        this._el = el;
+        render(this._render.bind(this));
     };
-    Moon.prototype._createFragment = function (vNode) {
-        var ele;
-        if (typeof vNode === 'string') {
-            ele = document.createTextNode(vNode);
+    Moon.prototype._render = function (a, b, c) {
+        if (typeof a === 'object') {
+            this._renderComponent(a);
         }
         else {
-            ele = document.createElement(vNode.tag);
+            console.log(111, a);
+            console.log(222, b);
+            console.log(333, c);
         }
-        for (var key in vNode.attrs) {
-            if (key === 'style') {
-                for (var styleName in vNode.attrs.style) {
-                    ele.style[styleName] = vNode.attrs.style[styleName];
-                }
-            }
-            else {
-                ele[key] = vNode.attrs[key];
-            }
-        }
-        for (var evt in vNode.on) {
-            if (/^\$.+$/.test(evt)) ;
-            else {
-                ele["on" + evt] = null;
-                ele["on" + evt] = vNode.on[evt];
-            }
-        }
-        if (vNode.children && vNode.children.length > 0) {
-            for (var _i = 0, _a = vNode.children; _i < _a.length; _i++) {
-                var node = _a[_i];
-                ele.appendChild(this._createFragment(node));
-            }
-        }
-        return ele;
     };
-    Moon.prototype._patch = function (oldVNode, newVNode) {
-        console.log(33333, oldVNode);
-        console.log(44444, newVNode);
-    };
-    Moon.prototype._set = function (name, value) {
-        if (this.data[name] !== value) {
-            this[name] = value;
-            this._patch(this.vNode, this.render(this._createElement));
+    Moon.prototype._renderComponent = function (vm) {
+        if (vm.render) {
+            vm.$get = this._get.bind(vm);
+            vm.$set = this._set.bind(vm);
+            vm._render = this._render;
+            vm.render(this._render.bind(this));
+            console.log('wwwwww', vm);
+        }
+        else {
+            warn("The render function is required in a component object");
         }
     };
     Moon.prototype._get = function (name) {
-        return this[name];
+        return this.data[name];
     };
-    Moon.prototype._createElement = function (a, b, c) {
-        var vNode = {};
-        if (typeof a === 'object') {
-            var vm = a;
-            if (vm.render) {
-                vm.componentWillInit.call(vm);
-                transformDatas(vm);
-                transformMethods(vm);
-                vNode = vm.render(this._createElement.bind(this));
-                vm.vNode = vNode;
-                vm.$get = this._get.bind(vm);
-                vm.$set = this._set.bind(vm);
-                vm._createElement = this._createElement;
-                vm._patch = this._patch;
-            }
-        }
-        else {
-            vNode.tag = a;
-            vNode.attrs = b.attrs || {};
-            vNode.on = b.on || {};
-            vNode.children = c || [];
-        }
-        return vNode;
+    Moon.prototype._set = function (name, value) {
+        this.data[name] = value;
     };
 }
 
