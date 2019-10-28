@@ -1,26 +1,42 @@
-
 export default {
   name: "app",
 
-  data() {
-    return {
-      msg: "Moon"
-    };
+  data: {
+    msg: "Moon",
+    spanContent: "App-Page"
+  },
+
+  componentWillInit() {
+    // console.log('TEST-LifeCycle: 组件即将渲染', this);
   },
 
   methods: {
-    test() {
-      console.log(3333333, this.msg);
+    test(e) {
+      this.$set('msg', "libiao")
+      console.log(this.$get('msg'));
     }
   },
 
   render(h) {
     return h('div', {
-      staticClass: "app-page",
-      style: {
-        color: "red",
-        id: this.data().msg
-      }
-    }, ["App-Page"]);
+      attrs: {
+        id: this.msg,
+        style: {
+          color: "red"
+        },
+        className: "byy-test"
+      },
+    }, [
+      h('span', {
+        attrs: {
+          className: "ccc"
+        },
+        on: {
+          click: this.test
+        }
+      }, [
+        this.spanContent
+      ])
+    ]);
   }
 };

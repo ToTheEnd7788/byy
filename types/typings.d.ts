@@ -19,7 +19,7 @@ interface VNode {
   children: Array<VNode>;
   attrs?: Object;
   on?: Object;
-  emit?: Function;
+  bind?: Object;
 }
 
 interface Options {
@@ -38,6 +38,7 @@ interface Component {
   $parent: ParentComponent;
   vNode: VNode;
   data?: Data;
+  components: Object;
   methods?: Object;
   props?: Object;
   watch?: Object;
@@ -50,4 +51,6 @@ interface Component {
   componentDidDestroy?: Function;
   render?: Function;
   _children: Array<Component>;
+  _createElement: Function;
+  _patch: Function
 }

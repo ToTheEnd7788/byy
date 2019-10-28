@@ -3,6 +3,18 @@ function warn(content) {
 }
 //# sourceMappingURL=index.js.map
 
+var transformMethods = function (vm) {
+    for (var name in vm.methods) {
+        vm[name] = vm.methods[name].bind(vm);
+    }
+};
+var transformDatas = function (vm) {
+    for (var key in vm.data) {
+        vm[key] = vm.data[key];
+    }
+};
+//# sourceMappingURL=compiler.js.map
+
 function initMoon(Moon) {
     Moon.prototype._init = function (options) {
         this._initOptions(options);
@@ -19,30 +31,79 @@ function initMoon(Moon) {
             return;
         }
         this._el = _el;
-        console.log(render(this._createElement.bind(this)));
+        var frag = document.createDocumentFragment();
+        this._el
+            .appendChild(this._createFragment(render(this._createElement.bind(this))));
     };
-    Moon.prototype._createVNode = function (a, b, c) {
-        console.log(a);
-        var vnode = {
-            tag: a,
-            attrs: b,
-            children: c
-        };
-        return vnode;
-    };
-    Moon.prototype._createElement = function (options) {
-        var vm = Object.assign({}, options), render = vm.render, name = vm.name;
-        if (!render) {
-            return;
-        }
-        if (name) {
-            console.log("This is Component render");
-            console.log(111111, this, vm);
-            return render.call(vm, this._createVNode);
+    Moon.prototype._createFragment = function (vNode) {
+        var ele;
+        if (typeof vNode === 'string') {
+            ele = document.createTextNode(vNode);
         }
         else {
-            console.log("This is components' render");
+            ele = document.createElement(vNode.tag);
         }
+        for (var key in vNode.attrs) {
+            if (key === 'style') {
+                for (var styleName in vNode.attrs.style) {
+                    ele.style[styleName] = vNode.attrs.style[styleName];
+                }
+            }
+            else {
+                ele[key] = vNode.attrs[key];
+            }
+        }
+        for (var evt in vNode.on) {
+            if (/^\$.+$/.test(evt)) ;
+            else {
+                ele["on" + evt] = null;
+                ele["on" + evt] = vNode.on[evt];
+            }
+        }
+        if (vNode.children && vNode.children.length > 0) {
+            for (var _i = 0, _a = vNode.children; _i < _a.length; _i++) {
+                var node = _a[_i];
+                ele.appendChild(this._createFragment(node));
+            }
+        }
+        return ele;
+    };
+    Moon.prototype._patch = function (oldVNode, newVNode) {
+        console.log(33333, oldVNode);
+        console.log(44444, newVNode);
+    };
+    Moon.prototype._set = function (name, value) {
+        if (this.data[name] !== value) {
+            this[name] = value;
+            this._patch(this.vNode, this.render(this._createElement));
+        }
+    };
+    Moon.prototype._get = function (name) {
+        return this[name];
+    };
+    Moon.prototype._createElement = function (a, b, c) {
+        var vNode = {};
+        if (typeof a === 'object') {
+            var vm = a;
+            if (vm.render) {
+                vm.componentWillInit.call(vm);
+                transformDatas(vm);
+                transformMethods(vm);
+                vNode = vm.render(this._createElement.bind(this));
+                vm.vNode = vNode;
+                vm.$get = this._get.bind(vm);
+                vm.$set = this._set.bind(vm);
+                vm._createElement = this._createElement;
+                vm._patch = this._patch;
+            }
+        }
+        else {
+            vNode.tag = a;
+            vNode.attrs = b.attrs || {};
+            vNode.on = b.on || {};
+            vNode.children = c || [];
+        }
+        return vNode;
     };
 }
 
