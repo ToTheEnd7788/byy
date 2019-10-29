@@ -51,7 +51,7 @@ interface Component {
   componentWillDestroy?: Function;
   componentDidDestroy?: Function;
   render?: Function;
-  _render: Function;
+  _renderVNode: Function;
   children: Array<Component>;
   _createVnode: Function;
   _patch: Function

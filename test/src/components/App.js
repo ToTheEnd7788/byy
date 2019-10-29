@@ -8,13 +8,16 @@ export default {
     spanContent: "App-Page"
   },
 
+  components: {
+    "test-one": TestOne
+  },
+
   componentWillInit() {
     // console.log('TEST-LifeCycle: 组件即将渲染', this);
   },
 
   methods: {
     test(e) {
-      this.$set('msg', "libiao")
       console.log(this.$get('msg'));
     }
   },
@@ -22,24 +25,17 @@ export default {
   render(h) {
     return h('div', {
       attrs: {
-        id: this.$get("msg"),
-        style: {
-          color: "red"
-        },
-        className: "byy-test"
-      },
+        className: "app"
+      }
     }, [
       h('span', {
         attrs: {
-          className: "ccc"
-        },
-        on: {
-          click: this.$get('test')
+          className: "app-span"
         }
       }, [
-        this.$get('spanContent'),
-        h(TestOne)
+        this.$get('msg'),
+        h('test-one')
       ])
-    ]);
+    ])
   }
 };
