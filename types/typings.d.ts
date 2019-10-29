@@ -43,6 +43,7 @@ interface Component {
   props?: Object;
   watch?: Object;
   name?: string;
+  component: Component;
   componentWillInit?: Function;
   componentDidInit?: Function;
   componentWillUpdate?: Function;
@@ -50,7 +51,8 @@ interface Component {
   componentWillDestroy?: Function;
   componentDidDestroy?: Function;
   render?: Function;
-  _children: Array<Component>;
+  _render: Function;
+  children: Array<Component>;
   _createVnode: Function;
   _patch: Function
 }

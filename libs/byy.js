@@ -1,35 +1,28 @@
-function warn(content) {
-    console.error("[ Moon Warning ]:\n" + content);
-}
-//# sourceMappingURL=index.js.map
-
 function initMoon(Moon) {
     Moon.prototype._init = function (options) {
         var el = options.el, render = options.render;
         this._el = el;
-        render(this._render.bind(this));
+        console.log(11111, render(this._createElement.bind(this)));
     };
-    Moon.prototype._render = function (a, b, c) {
+    Moon.prototype._createElement = function (a, b, c) {
         if (typeof a === 'object') {
-            this._renderComponent(a);
+            a.$get = this._get.bind(a);
+            a.$set = this._set.bind(a);
+            if (a.children) {
+                a.children.push(this._createElement.bind(this));
+            }
+            else {
+                a.children = [a.render(this._createElement.bind(this))];
+            }
         }
         else {
-            console.log(111, a);
-            console.log(222, b);
-            console.log(333, c);
+            var vNode = {
+                tag: a,
+                attrs: b.attrs,
+                children: c
+            };
         }
-    };
-    Moon.prototype._renderComponent = function (vm) {
-        if (vm.render) {
-            vm.$get = this._get.bind(vm);
-            vm.$set = this._set.bind(vm);
-            vm._render = this._render;
-            vm.render(this._render.bind(this));
-            console.log('wwwwww', vm);
-        }
-        else {
-            warn("The render function is required in a component object");
-        }
+        return a;
     };
     Moon.prototype._get = function (name) {
         return this.data[name];
@@ -38,6 +31,11 @@ function initMoon(Moon) {
         this.data[name] = value;
     };
 }
+
+function warn(content) {
+    console.error("[ Moon Warning ]:\n" + content);
+}
+//# sourceMappingURL=index.js.map
 
 function Moon(options) {
     if (!(this instanceof Moon)) {
