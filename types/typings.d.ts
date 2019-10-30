@@ -55,6 +55,7 @@ interface Component {
   _renderVNode: Function;
   children: Array<Component>;
   _createELement: Function;
+  _compareAttrs: Function;
   _createVnode: Function;
   _patch: Function
 }

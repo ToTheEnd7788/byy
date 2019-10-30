@@ -90,6 +90,7 @@ function initMoon(Moon) {
         vm._renderVNode = this._renderVNode;
         vm._patch = this._patch;
         vm._createELement = this._createELement;
+        vm._compareAttrs = this._compareAttrs;
         transformMethods(vm);
         if (vm.components) {
             for (var key in vm.components) {
@@ -111,11 +112,50 @@ function initMoon(Moon) {
         this.data[name] = value;
         this._patch(this.render(this._renderVNode), this.vNode);
     };
-    Moon.prototype._patch = function (newVNode, oldVNode) {
-        if (newVNode.tag !== oldVNode.tag) {
-            this.$el.parentNode.replaceChild(this._createELement(this, newVNode), this.$el);
+    Moon.prototype._compareAttrs = function (newVal, oldVal) {
+        var attrs = {};
+        if (typeof newVal === 'string') {
+            if (newVal !== oldVal) {
+                attrs = newVal;
+            }
         }
-    };
+        else {
+            for (var newName in newVal) {
+                var result = this._compareAttrs.call(this, newVal[newName], oldVal[newName]);
+                if (Object.keys(result).length > 0) {
+                    if (attrs[newName]) {
+                        attrs[newName].push({
+                            position: 0,
+                            name: newName,
+                            value: result
+                        });
+                    }
+                    else {
+                        attrs[newName] = [{
+                                position: 0,
+                                name: newName,
+                                value: result
+                            }];
+                    }
+                }
+            }
+        }
+        return attrs;
+    },
+        Moon.prototype._patch = function (newVNode, oldVNode) {
+            var maps = {
+                update: {},
+                move: {},
+                insert: {}
+            };
+            if (newVNode.tag !== oldVNode.tag) {
+                this.$el.parentNode.replaceChild(this._createELement(this, newVNode), this.$el);
+            }
+            else {
+                console.log(999999, this._compareAttrs.call(this, newVNode.attrs, oldVNode.attrs));
+            }
+            console.log(2222222, maps);
+        };
 }
 
 function Moon(options) {

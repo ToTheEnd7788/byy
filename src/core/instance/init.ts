@@ -6,8 +6,6 @@ export function initMoon(Moon) {
     let { el, render } = options;
 
     this._el = el;
-
-    // console.log(33333, render(this._render.bind(this)));
     this.$el = render(this._render.bind(this)).$el;
 
     document.querySelector(this._el).appendChild(this.$el);
@@ -90,7 +88,8 @@ export function initMoon(Moon) {
     vm.$set = this._set.bind(vm);
     vm._renderVNode = this._renderVNode;
     vm._patch = this._patch;
-    vm._createELement = this._createELement
+    vm._createELement = this._createELement;
+    vm._compareAttrs = this._compareAttrs;
 
     transformMethods(vm);
     
@@ -118,14 +117,61 @@ export function initMoon(Moon) {
     this._patch(this.render(this._renderVNode), this.vNode);
   }
 
+  Moon.prototype._compareAttrs = function(newVal, oldVal) {
+    let attrs = {};
+
+    if (typeof newVal === 'string') {
+      if (newVal !== oldVal) {
+        attrs = newVal;
+      }
+    } else {
+      for (let newName in newVal) {
+        let result = this._compareAttrs.call(this, newVal[newName], oldVal[newName]);
+        // console.log(333333, typeof result === 'string');
+        if (Object.keys(result).length > 0) {
+          if (attrs[newName]) {
+            attrs[newName].push({
+              position: 0,
+              name: newName,
+              value: result
+            })
+          } else {
+            attrs[newName] = [{
+              position: 0,
+              name: newName,
+              value: result
+            }];
+          }
+        }
+      }
+    }
+
+    return attrs;
+  },
+
   Moon.prototype._patch = function(newVNode, oldVNode) {
+    let maps = {
+      update: {},
+      move: {},
+      insert: {}
+    };
+
     if (newVNode.tag !== oldVNode.tag) {
       this.$el.parentNode.replaceChild(
         this._createELement(this, newVNode),
         this.$el
       );
     } else {
+      // console.log(22222, newVNode.attrs, oldVNode.attrs);
+      // update:style
+      // update:className
+      // update:attribute
+      // move:
+      // insert:position/begin/end
 
+      console.log(999999, this._compareAttrs.call(this, newVNode.attrs, oldVNode.attrs));
     }
+
+    console.log(2222222, maps);
   }
 }
