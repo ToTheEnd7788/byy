@@ -20,6 +20,7 @@ interface VNode {
   attrs?: Object;
   on?: Object;
   bind?: Object;
+  _events: Object;
 }
 
 interface Options {
@@ -53,6 +54,7 @@ interface Component {
   render?: Function;
   _renderVNode: Function;
   children: Array<Component>;
+  _createELement: Function;
   _createVnode: Function;
   _patch: Function
 }

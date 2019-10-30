@@ -5,7 +5,8 @@ export default {
 
   data: {
     msg: "Moon",
-    spanContent: "App-Page"
+    spanContent: "App-Page",
+    color: "red"
   },
 
   components: {
@@ -25,8 +26,14 @@ export default {
   render(h) {
     return h('div', {
       attrs: {
-        className: "app"
-      }
+        className: "app",
+        style: {
+          color: this.$get('color')
+        }
+      },
+      on: {
+        click: this.test
+      },
     }, [
       h('span', {
         attrs: {
