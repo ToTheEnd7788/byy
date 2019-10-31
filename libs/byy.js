@@ -34,7 +34,9 @@ function initMoon(Moon) {
                     ele.style[styleName] = vNode.attrs[key][styleName];
                 }
             }
-            else if (key === 'class') ;
+            else if (key === 'className') {
+                ele[key] = vNode.attrs[key].join(" ");
+            }
             else {
                 ele[key] = vNode.attrs[key];
             }
@@ -79,8 +81,20 @@ function initMoon(Moon) {
     };
     Moon.prototype._renderVNode = function (a, b, c) {
         if (b && b.attrs) {
-            var classes = b.attrs.class || [];
-            b.attrs.class;
+            var classes_1 = b.attrs.class || [];
+            if (Array.isArray(classes_1)) {
+                b.attrs.className = [b.attrs.className].concat(classes_1);
+            }
+            else if (typeof classes_1 === 'object') {
+                var classesList = Object.keys(classes_1).filter(function (name) {
+                    return classes_1[name];
+                });
+                b.attrs.className = [b.attrs.className].concat(classesList);
+            }
+            else {
+                warn("The attribute named [class] must be a Array or Object<string: boolean>.");
+            }
+            delete b.attrs['class'];
         }
         return {
             tag: a,
@@ -118,11 +132,15 @@ function initMoon(Moon) {
     Moon.prototype._set = function (name, value) {
         this.data[name] = value;
         this._patch(this.render(this._renderVNode), this.vNode);
+        this.vNode = this.render(this._renderVNode);
     };
     Moon.prototype._diffAttrs = function (newVal, oldVal) {
         var diff = {};
         for (var name in newVal) {
-            if (newVal[name] !== oldVal[name]) {
+            if (Array.isArray(newVal[name])) {
+                diff[name] = newVal[name];
+            }
+            else if (newVal[name] !== oldVal[name]) {
                 if (typeof newVal[name] === 'object') {
                     if (diff[name]) {
                         diff[name] = Object.assign(diff[name], this._diffAttrs.call(this, newVal[name], oldVal[name]));
@@ -146,7 +164,7 @@ function initMoon(Moon) {
                     }
                 }
                 else if (name === 'className') {
-                    el[name] = differ[name];
+                    el[name] = differ[name].join(" ");
                 }
                 else {
                     el[name] = differ[name];

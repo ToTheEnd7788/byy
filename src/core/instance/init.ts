@@ -32,8 +32,8 @@ export function initMoon(Moon) {
         for (let styleName in vNode.attrs[key]) {
           ele.style[styleName] = vNode.attrs[key][styleName];
         }
-      } else if (key === 'class') {
-        123123123123123123123123
+      } else if (key === 'className') {
+        ele[key] = vNode.attrs[key].join(" ");
       } else {
         ele[key] = vNode.attrs[key];
       }
@@ -82,13 +82,18 @@ export function initMoon(Moon) {
       let classes = b.attrs.class || [];
 
       if (Array.isArray(classes)) {
-
+        b.attrs.className = [b.attrs.className].concat(classes);
       } else if (typeof classes === 'object') {
+        let classesList = Object.keys(classes).filter(name => {
+          return classes[name];
+        });
 
+        b.attrs.className = [b.attrs.className].concat(classesList);
       } else {
-
+        warn(`The attribute named [class] must be a Array or Object<string: boolean>.`)
       }
-      b.attrs.class
+
+      delete b.attrs['class'];
     }
     return {
       tag: a,
@@ -132,13 +137,16 @@ export function initMoon(Moon) {
   Moon.prototype._set = function(name: string, value: any) {
     this.data[name] = value;
     this._patch(this.render(this._renderVNode), this.vNode);
+    this.vNode = this.render(this._renderVNode);
   }
 
   Moon.prototype._diffAttrs = function(newVal, oldVal) {
     let diff = {};
 
     for (let name in newVal) {
-      if (newVal[name] !== oldVal[name]) {
+      if (Array.isArray(newVal[name])) {
+        diff[name] = newVal[name];
+      } else if (newVal[name] !== oldVal[name]) {
         if (typeof newVal[name] === 'object') {
           if (diff[name]) {
             diff[name] = Object.assign(
@@ -146,7 +154,6 @@ export function initMoon(Moon) {
               this._diffAttrs.call(this, newVal[name], oldVal[name])
             ); 
           } else {
-
             diff[name] = Object.assign(
               {},
               this._diffAttrs.call(this, newVal[name], oldVal[name])
@@ -168,7 +175,7 @@ export function initMoon(Moon) {
           el.style[styleName] = differ[name][styleName];
         }
       } else if (name === 'className') {
-        el[name] = differ[name];
+        el[name] = differ[name].join(" ");
       } else {
         el[name] = differ[name];
       }
@@ -205,6 +212,5 @@ export function initMoon(Moon) {
     }
 
     this._addPatch(maps);
-
   }
 }
