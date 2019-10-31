@@ -1,6 +1,7 @@
 /// <reference path="../../../types/typings.d.ts">
 import { warn } from "../../../publics/index";
 import { transformMethods, transformDatas } from "./compiler";
+import { isArray } from "util";
 export function initMoon(Moon) {
   Moon.prototype._init = function(options: Options) {
     let { el, render } = options;
@@ -31,6 +32,8 @@ export function initMoon(Moon) {
         for (let styleName in vNode.attrs[key]) {
           ele.style[styleName] = vNode.attrs[key][styleName];
         }
+      } else if (key === 'class') {
+        123123123123123123123123
       } else {
         ele[key] = vNode.attrs[key];
       }
@@ -75,6 +78,18 @@ export function initMoon(Moon) {
   };
 
   Moon.prototype._renderVNode = function(a: any, b: any, c: any) {
+    if (b && b.attrs) {
+      let classes = b.attrs.class || [];
+
+      if (Array.isArray(classes)) {
+
+      } else if (typeof classes === 'object') {
+
+      } else {
+
+      }
+      b.attrs.class
+    }
     return {
       tag: a,
       attrs: (b && b.attrs),
@@ -89,7 +104,9 @@ export function initMoon(Moon) {
     vm._renderVNode = this._renderVNode;
     vm._patch = this._patch;
     vm._createELement = this._createELement;
-    vm._compareAttrs = this._compareAttrs;
+    vm._diffAttrs = this._diffAttrs;
+    vm._addPatch = this._addPatch;
+    vm._updatePacher = this._updatePacher;
 
     transformMethods(vm);
     
@@ -117,37 +134,57 @@ export function initMoon(Moon) {
     this._patch(this.render(this._renderVNode), this.vNode);
   }
 
-  Moon.prototype._compareAttrs = function(newVal, oldVal) {
-    let attrs = {};
+  Moon.prototype._diffAttrs = function(newVal, oldVal) {
+    let diff = {};
 
-    if (typeof newVal === 'string') {
-      if (newVal !== oldVal) {
-        attrs = newVal;
-      }
-    } else {
-      for (let newName in newVal) {
-        let result = this._compareAttrs.call(this, newVal[newName], oldVal[newName]);
-        // console.log(333333, typeof result === 'string');
-        if (Object.keys(result).length > 0) {
-          if (attrs[newName]) {
-            attrs[newName].push({
-              position: 0,
-              name: newName,
-              value: result
-            })
+    for (let name in newVal) {
+      if (newVal[name] !== oldVal[name]) {
+        if (typeof newVal[name] === 'object') {
+          if (diff[name]) {
+            diff[name] = Object.assign(
+              diff[name],
+              this._diffAttrs.call(this, newVal[name], oldVal[name])
+            ); 
           } else {
-            attrs[newName] = [{
-              position: 0,
-              name: newName,
-              value: result
-            }];
+
+            diff[name] = Object.assign(
+              {},
+              this._diffAttrs.call(this, newVal[name], oldVal[name])
+            );
           }
+        } else {
+          diff[name] = newVal[name];
         }
       }
     }
 
-    return attrs;
+    return diff;
   },
+
+  Moon.prototype._updatePacher = function(el: HTMLElement, differ: any) {
+    for (let name in differ) {
+      if (name === 'style') {
+        for (let styleName in differ[name]) {
+          el.style[styleName] = differ[name][styleName];
+        }
+      } else if (name === 'className') {
+        el[name] = differ[name];
+      } else {
+        el[name] = differ[name];
+      }
+    }
+  }
+
+  Moon.prototype._addPatch = function(differ: any) {
+    for (let name in differ) {
+      if (name === 'update') {
+        for (let position in differ[name]) {
+          if (position === '0') this._updatePacher(this.$el, differ[name][position])
+          else this._updatePacher(this.$el.childNodes[position], differ[name][position])
+        }
+      };
+    }
+  };
 
   Moon.prototype._patch = function(newVNode, oldVNode) {
     let maps = {
@@ -162,16 +199,12 @@ export function initMoon(Moon) {
         this.$el
       );
     } else {
-      // console.log(22222, newVNode.attrs, oldVNode.attrs);
-      // update:style
-      // update:className
-      // update:attribute
-      // move:
-      // insert:position/begin/end
-
-      console.log(999999, this._compareAttrs.call(this, newVNode.attrs, oldVNode.attrs));
+      maps.update = {
+        "0": this._diffAttrs.call(this, newVNode.attrs, oldVNode.attrs)
+      };
     }
 
-    console.log(2222222, maps);
+    this._addPatch(maps);
+
   }
 }

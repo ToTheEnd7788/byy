@@ -53,9 +53,10 @@ interface Component {
   componentDidDestroy?: Function;
   render?: Function;
   _renderVNode: Function;
-  children: Array<Component>;
   _createELement: Function;
-  _compareAttrs: Function;
+  _diffAttrs: Function;
   _createVnode: Function;
-  _patch: Function
+  _patch: Function;
+  _addPatch: Function;
+  _updatePacher: Function;
 }

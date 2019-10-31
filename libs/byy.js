@@ -34,6 +34,7 @@ function initMoon(Moon) {
                     ele.style[styleName] = vNode.attrs[key][styleName];
                 }
             }
+            else if (key === 'class') ;
             else {
                 ele[key] = vNode.attrs[key];
             }
@@ -77,6 +78,10 @@ function initMoon(Moon) {
         return ele;
     };
     Moon.prototype._renderVNode = function (a, b, c) {
+        if (b && b.attrs) {
+            var classes = b.attrs.class || [];
+            b.attrs.class;
+        }
         return {
             tag: a,
             attrs: (b && b.attrs),
@@ -90,7 +95,9 @@ function initMoon(Moon) {
         vm._renderVNode = this._renderVNode;
         vm._patch = this._patch;
         vm._createELement = this._createELement;
-        vm._compareAttrs = this._compareAttrs;
+        vm._diffAttrs = this._diffAttrs;
+        vm._addPatch = this._addPatch;
+        vm._updatePacher = this._updatePacher;
         transformMethods(vm);
         if (vm.components) {
             for (var key in vm.components) {
@@ -112,50 +119,68 @@ function initMoon(Moon) {
         this.data[name] = value;
         this._patch(this.render(this._renderVNode), this.vNode);
     };
-    Moon.prototype._compareAttrs = function (newVal, oldVal) {
-        var attrs = {};
-        if (typeof newVal === 'string') {
-            if (newVal !== oldVal) {
-                attrs = newVal;
-            }
-        }
-        else {
-            for (var newName in newVal) {
-                var result = this._compareAttrs.call(this, newVal[newName], oldVal[newName]);
-                if (Object.keys(result).length > 0) {
-                    if (attrs[newName]) {
-                        attrs[newName].push({
-                            position: 0,
-                            name: newName,
-                            value: result
-                        });
+    Moon.prototype._diffAttrs = function (newVal, oldVal) {
+        var diff = {};
+        for (var name in newVal) {
+            if (newVal[name] !== oldVal[name]) {
+                if (typeof newVal[name] === 'object') {
+                    if (diff[name]) {
+                        diff[name] = Object.assign(diff[name], this._diffAttrs.call(this, newVal[name], oldVal[name]));
                     }
                     else {
-                        attrs[newName] = [{
-                                position: 0,
-                                name: newName,
-                                value: result
-                            }];
+                        diff[name] = Object.assign({}, this._diffAttrs.call(this, newVal[name], oldVal[name]));
                     }
+                }
+                else {
+                    diff[name] = newVal[name];
                 }
             }
         }
-        return attrs;
+        return diff;
     },
-        Moon.prototype._patch = function (newVNode, oldVNode) {
-            var maps = {
-                update: {},
-                move: {},
-                insert: {}
-            };
-            if (newVNode.tag !== oldVNode.tag) {
-                this.$el.parentNode.replaceChild(this._createELement(this, newVNode), this.$el);
+        Moon.prototype._updatePacher = function (el, differ) {
+            for (var name in differ) {
+                if (name === 'style') {
+                    for (var styleName in differ[name]) {
+                        el.style[styleName] = differ[name][styleName];
+                    }
+                }
+                else if (name === 'className') {
+                    el[name] = differ[name];
+                }
+                else {
+                    el[name] = differ[name];
+                }
             }
-            else {
-                console.log(999999, this._compareAttrs.call(this, newVNode.attrs, oldVNode.attrs));
-            }
-            console.log(2222222, maps);
         };
+    Moon.prototype._addPatch = function (differ) {
+        for (var name in differ) {
+            if (name === 'update') {
+                for (var position in differ[name]) {
+                    if (position === '0')
+                        this._updatePacher(this.$el, differ[name][position]);
+                    else
+                        this._updatePacher(this.$el.childNodes[position], differ[name][position]);
+                }
+            }
+        }
+    };
+    Moon.prototype._patch = function (newVNode, oldVNode) {
+        var maps = {
+            update: {},
+            move: {},
+            insert: {}
+        };
+        if (newVNode.tag !== oldVNode.tag) {
+            this.$el.parentNode.replaceChild(this._createELement(this, newVNode), this.$el);
+        }
+        else {
+            maps.update = {
+                "0": this._diffAttrs.call(this, newVNode.attrs, oldVNode.attrs)
+            };
+        }
+        this._addPatch(maps);
+    };
 }
 
 function Moon(options) {
