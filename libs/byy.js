@@ -100,6 +100,7 @@ function initMoon(Moon) {
             tag: a,
             attrs: (b && b.attrs),
             _events: (b && b.on),
+            _binds: (b && b.bind),
             children: c || []
         };
     };
@@ -112,6 +113,7 @@ function initMoon(Moon) {
         vm._diffAttrs = this._diffAttrs;
         vm._addPatch = this._addPatch;
         vm._updatePacher = this._updatePacher;
+        vm.$emit = this._emit;
         transformMethods(vm);
         if (vm.components) {
             for (var key in vm.components) {
@@ -133,6 +135,13 @@ function initMoon(Moon) {
         this.data[name] = value;
         this._patch(this.render(this._renderVNode), this.vNode);
         this.vNode = this.render(this._renderVNode);
+    };
+    Moon.prototype._emit = function (name) {
+        var values = [];
+        for (var _i = 1; _i < arguments.length; _i++) {
+            values[_i - 1] = arguments[_i];
+        }
+        this.$parent.vNode._binds[name] && this.$parent.vNode._binds[name].apply(this.$parent, values);
     };
     Moon.prototype._diffAttrs = function (newVal, oldVal) {
         var diff = {};

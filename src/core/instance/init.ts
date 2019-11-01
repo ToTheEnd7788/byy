@@ -99,6 +99,7 @@ export function initMoon(Moon) {
       tag: a,
       attrs: (b && b.attrs),
       _events: (b && b.on),
+      _binds: (b && b.bind),
       children: c || []
     };
   }
@@ -112,6 +113,7 @@ export function initMoon(Moon) {
     vm._diffAttrs = this._diffAttrs;
     vm._addPatch = this._addPatch;
     vm._updatePacher = this._updatePacher;
+    vm.$emit = this._emit;
 
     transformMethods(vm);
     
@@ -138,6 +140,10 @@ export function initMoon(Moon) {
     this.data[name] = value;
     this._patch(this.render(this._renderVNode), this.vNode);
     this.vNode = this.render(this._renderVNode);
+  }
+
+  Moon.prototype._emit = function(name: string, ...values: any[] ) {
+    this.$parent.vNode._binds[name] && this.$parent.vNode._binds[name].apply(this.$parent, values);
   }
 
   Moon.prototype._diffAttrs = function(newVal, oldVal) {

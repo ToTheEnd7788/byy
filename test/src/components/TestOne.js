@@ -11,7 +11,8 @@ export default {
     clickText() {
       this.$set('styleColor', "orange");
       this.$set('msg', "TestOne");
-      this.$set('isBoldText', !this.$get('isBoldText'));
+
+      this.$emit("triggerParentTestMethod", "byy", "wmd");
     }
   },
 

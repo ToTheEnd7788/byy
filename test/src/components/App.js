@@ -18,8 +18,8 @@ export default {
   },
 
   methods: {
-    test(e) {
-      console.log(this.$get('msg'));
+    test(name1, name2) {
+      console.log(11111, name1, name2);
     }
   },
 
@@ -32,8 +32,11 @@ export default {
         }
       },
       on: {
-        click: this.test
+        // click: this.test
       },
+      bind: {
+        "triggerParentTestMethod": this.test
+      }
     }, [
       h('span', {
         attrs: {
