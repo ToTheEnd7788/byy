@@ -6,7 +6,8 @@ export default {
   data: {
     msg: "Moon",
     spanContent: "App-Page",
-    color: "red"
+    color: "red",
+    upperData: "来自父亲的数据"
   },
 
   components: {
@@ -19,7 +20,7 @@ export default {
 
   methods: {
     test(name1, name2) {
-      console.log(11111, name1, name2);
+      this.$set('msg', `${name1}@${name2}`);
     }
   },
 
@@ -32,11 +33,8 @@ export default {
         }
       },
       on: {
-        // click: this.test
+        click: [this.test, "libiao", "wmd"]
       },
-      bind: {
-        "triggerParentTestMethod": this.test
-      }
     }, [
       h('span', {
         attrs: {
@@ -44,7 +42,14 @@ export default {
         }
       }, [
         this.$get('msg'),
-        h('test-one')
+        h('test-one', {
+          props: {
+            upperData: `${this.$get('upperData')}`
+          },
+          bind: {
+            "triggerParentTestMethod": this.test
+          }
+        })
       ])
     ])
   }

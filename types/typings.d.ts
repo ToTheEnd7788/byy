@@ -59,4 +59,5 @@ interface Component {
   _patch: Function;
   _addPatch: Function;
   _updatePacher: Function;
+  _getTargetElement: Function;
 }

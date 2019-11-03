@@ -1,7 +1,6 @@
 /// <reference path="../../../types/typings.d.ts">
 import { warn } from "../../../publics/index";
 import { transformMethods, transformDatas } from "./compiler";
-import { isArray } from "util";
 export function initMoon(Moon) {
   Moon.prototype._init = function(options: Options) {
     let { el, render } = options;
@@ -46,13 +45,30 @@ export function initMoon(Moon) {
 
       } else {
         ele[`on${name}`] = null;
-        ele[`on${name}`] = vNode._events[name];
+
+        if (Array.isArray(vNode._events[name])) {
+          ele[`on${name}`] = function(e) {
+            let argumentList = vNode._events[name].slice(1);
+
+            let eInstanceIndex = argumentList.findIndex(item => {
+              return item === '$event';
+            });
+
+            if (eInstanceIndex > -1) {
+              argumentList.splice(eInstanceIndex, 1, e);
+            }
+
+            vNode._events[name][0].apply(vm, argumentList);
+          }
+        } else {
+          ele[`on${name}`] = vNode._events[name].bind(vm, undefined);
+        }
       }
     }
 
     for (let child of vNode.children) {
-      if (typeof child === 'string') {
-        ele.appendChild(document.createTextNode(child));
+      if (typeof child === 'string' || typeof child === 'number' || typeof child === 'boolean') {
+        ele.appendChild(document.createTextNode(`${child}`));
       } else {
         // Searching in vm.components' key, if has same name with child's tag
         // We need to render and append this component element in the position
@@ -63,7 +79,28 @@ export function initMoon(Moon) {
   
           if (name) {
             vm.components[name].$parent = vm;
+            if (child._props) {
+              for (let propName in child._props) {
+                vm.components[name].props = Object.assign(vm.components[name].props, {
+                  [propName]: {
+                    type: vm.components[name].props[propName].type,
+                    default: vm.components[name].props[propName].default,
+                    value: child._props[propName]
+                  }
+                });
+              }
+
+              vm.components[name].vNode = vm.components[name].render(vm.components[name]._renderVNode);
+            }
+
+            if (child._binds) {
+              for (let method in child._binds) {
+                vm.components[name][method] = child._binds[method].bind(vm);
+              }
+            }
+
             vm.components[name].$el = this._createELement(vm, vm.components[name]);
+            
             ele.appendChild(vm.components[name].$el);
           } else {
             ele.appendChild(this._createELement(vm, child));
@@ -90,14 +127,16 @@ export function initMoon(Moon) {
 
         b.attrs.className = [b.attrs.className].concat(classesList);
       } else {
-        warn(`The attribute named [class] must be a Array or Object<string: boolean>.`)
+        warn(`The attribute named [class] must be a Array or Object<string: boolean>.`);
       }
 
       delete b.attrs['class'];
     }
+
     return {
       tag: a,
       attrs: (b && b.attrs),
+      _props: (b && b.props),
       _events: (b && b.on),
       _binds: (b && b.bind),
       children: c || []
@@ -113,6 +152,7 @@ export function initMoon(Moon) {
     vm._diffAttrs = this._diffAttrs;
     vm._addPatch = this._addPatch;
     vm._updatePacher = this._updatePacher;
+    vm._getTargetElement = this._getTargetElement;
     vm.$emit = this._emit;
 
     transformMethods(vm);
@@ -132,8 +172,10 @@ export function initMoon(Moon) {
     return vm;
   }
 
-  Moon.prototype._get = function(name: string) {
-    return this.data[name];
+  Moon.prototype._get = function(name: string): any {
+    return this.data[name] || this.data[name] === false
+      ? this.data[name]
+      : (this.props && (this.props[name].value || this.props[name].default));
   };
 
   Moon.prototype._set = function(name: string, value: any) {
@@ -143,12 +185,11 @@ export function initMoon(Moon) {
   }
 
   Moon.prototype._emit = function(name: string, ...values: any[] ) {
-    this.$parent.vNode._binds[name] && this.$parent.vNode._binds[name].apply(this.$parent, values);
+    this[name] && this[name].apply(this, values);
   }
 
   Moon.prototype._diffAttrs = function(newVal, oldVal) {
     let diff = {};
-
     for (let name in newVal) {
       if (Array.isArray(newVal[name])) {
         diff[name] = newVal[name];
@@ -188,33 +229,73 @@ export function initMoon(Moon) {
     }
   }
 
+  Moon.prototype._getTargetElement = function(ele, position) {
+    let list = position.split("-"),
+      target = ele;
+
+    if (list.length === 1 && /^[\d]$/.test(list[0])) {
+      target = ele.parentNode.childNodes[list[0]]
+    } else {
+      for (let i = 1; i < list.length; i++) {
+        target = target.childNodes[list[i]];
+      }
+    }
+
+    return target;
+  };
+
   Moon.prototype._addPatch = function(differ: any) {
     for (let name in differ) {
       if (name === 'update') {
         for (let position in differ[name]) {
-          if (position === '0') this._updatePacher(this.$el, differ[name][position])
-          else this._updatePacher(this.$el.childNodes[position], differ[name][position])
+          if (position === '0') {
+            this._updatePacher(this.$el, differ[name][position]);
+          } else {
+            this._updatePacher(
+              this._getTargetElement(this.$el, position),
+              differ[name][position]
+            );
+          }
         }
       };
     }
   };
 
-  Moon.prototype._patch = function(newVNode, oldVNode) {
+  Moon.prototype._patch = function(newVNode, oldVNode, index) {
     let maps = {
       update: {},
       move: {},
       insert: {}
     };
 
-    if (newVNode.tag !== oldVNode.tag) {
-      this.$el.parentNode.replaceChild(
-        this._createELement(this, newVNode),
-        this.$el
-      );
-    } else {
+    let sign = index
+      ? index
+      : "0"
+
+    if (typeof newVNode === 'string') {
       maps.update = {
-        "0": this._diffAttrs.call(this, newVNode.attrs, oldVNode.attrs)
+        [sign]: {
+          nodeValue: newVNode
+        }
       };
+    } else {
+      if (newVNode.tag !== oldVNode.tag) {
+        this.$el.parentNode.replaceChild(
+          this._createELement(this, newVNode),
+          this.$el
+        );
+      } else {
+        maps.update = {
+          [sign]: this._diffAttrs.call(this, newVNode.attrs, oldVNode.attrs)
+        };
+      }
+
+      if (newVNode.children) {
+        for (let i = 0; i < newVNode.children.length; i++) {
+          this._patch.call(this, newVNode.children[i], oldVNode.children[i], `${sign}-${i}`);
+        }
+      }
+      
     }
 
     this._addPatch(maps);
