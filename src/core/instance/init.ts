@@ -47,21 +47,47 @@ export function initMoon(Moon) {
         ele[`on${name}`] = null;
 
         if (Array.isArray(vNode._events[name])) {
-          ele[`on${name}`] = function(e) {
-            let argumentList = vNode._events[name].slice(1);
+          let eventsBedecks = {
+            "stop": function(e) {
+              if (e.stopPropagation) e.stopPropagation();
+              else e.cancelBubble = true;
 
-            let eInstanceIndex = argumentList.findIndex(item => {
-              return item === '$event';
-            });
+            },
+            "prevent": function(e) {
+              if (e.preventDefault) e.preventDefault();
+              else e.returnValue = false;
+            }
+          };
+
+          let eventNameInfo = name.split('.'),
+            bedeckHandler = null,
+            eventName = name;
+
+          if (eventNameInfo.length > 1) {
+            eventName = eventNameInfo[0];
+            if (eventsBedecks[eventNameInfo[1]]) {
+              bedeckHandler = eventsBedecks[eventNameInfo[1]];
+            } else {
+              warn(`You have used a invalid bedecker named [${eventNameInfo[1]},\nPlease check "${JSON.stringify(Object.keys(eventsBedecks))}"`);
+            }
+          }
+
+          ele[`on${eventName}`] = function(e) {
+            if (bedeckHandler) bedeckHandler(e);
+            let evt = e || window.event,
+              argumentList = vNode._events[name].slice(1),
+              eInstanceIndex = argumentList.findIndex(item => {
+                return item === '$event';
+              });
 
             if (eInstanceIndex > -1) {
-              argumentList.splice(eInstanceIndex, 1, e);
+              argumentList.splice(eInstanceIndex, 1, evt);
             }
 
             vNode._events[name][0].apply(vm, argumentList);
           }
         } else {
-          ele[`on${name}`] = vNode._events[name].bind(vm, undefined);
+          warn(`The event named [${name}] must be a Array<handler, ...params>`);
         }
       }
     }
@@ -153,8 +179,10 @@ export function initMoon(Moon) {
     vm._addPatch = this._addPatch;
     vm._updatePacher = this._updatePacher;
     vm._getTargetElement = this._getTargetElement;
+    vm._setterTimer = null;
     vm.$emit = this._emit;
-
+    vm.$nextTick = this._nextTick;
+    vm._queueTicker = [];
     transformMethods(vm);
     
     if (vm.components) {
@@ -179,10 +207,33 @@ export function initMoon(Moon) {
   };
 
   Moon.prototype._set = function(name: string, value: any) {
-    this.data[name] = value;
-    this._patch(this.render(this._renderVNode), this.vNode);
-    this.vNode = this.render(this._renderVNode);
+    if (this.data[name] !== value) {
+      // Trig watch
+      if (this.watch) {
+        this.watch[name] && this.watch[name].call(this, this.data[name], value);
+      }
+      this.data[name] = value;
+      clearTimeout(this._setterTimer);
+      this._setterTimer = null;
+
+      // Delay to update dom tree
+      this._setterTimer = setTimeout(() => {
+        this._patch(this.render(this._renderVNode), this.vNode);
+        this.vNode = this.render(this._renderVNode);
+
+        // maybe nextTick function need to put here to run
+        for (let i = 0; i < this._queueTicker.length; i++) {
+          this._queueTicker[i]();
+        }
+
+        this._queueTicker = [];
+      }, 10);
+    }
   }
+
+  Moon.prototype._nextTick = function(callback: Function) {
+    this._queueTicker.push(callback);
+  };
 
   Moon.prototype._emit = function(name: string, ...values: any[] ) {
     this[name] && this[name].apply(this, values);

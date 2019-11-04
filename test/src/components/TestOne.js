@@ -14,14 +14,22 @@ export default {
     }
   },
 
+  watch: {
+    styleColor(newVal, oldVal) {
+      console.log(newVal, oldVal, this);
+    }
+  },
+
   methods: {
     clickText(a, e) {
-      console.log(999999, a);
-      console.log(888888, e);
       this.$set('styleColor', "orange");
       this.$set('msg', "TestOne123123");
+      this.$set('msg',a);
+      this.$nextTick(() => {
+        // console.log(33, this.$el);
+      })
 
-      this.$emit("triggerParentTestMethod", "byy", "wmd");
+      // this.$emit("triggerParentTestMethod", "byy", "wmd");
     }
   },
 
@@ -37,7 +45,7 @@ export default {
         }
       },
       on: {
-        click: [this.clickText, "arguments[0]", "$event"]
+        "click.stop": [this.clickText, "arguments[0]", "$event"]
       }
     }, [
       this.$get('msg'),

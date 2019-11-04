@@ -60,4 +60,7 @@ interface Component {
   _addPatch: Function;
   _updatePacher: Function;
   _getTargetElement: Function;
+  _setterTimer: Object;
+  _queueTicker: Array<Function>;
+  _eventsBedecks: Object;
 }
