@@ -9,7 +9,7 @@ module.exports = {
     //   runtimeHelpers: true,
     // }),
     typescriptPlugin(),
-    terser(),
+    // terser(),
   ],
   output: {
     file: "libs/byy.js",
