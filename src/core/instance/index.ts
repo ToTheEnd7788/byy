@@ -1,5 +1,5 @@
 /// <reference path="../types/typings.d.ts">
-
+import "../../../publics/shim";
 import { initMoon } from "./init";
 import { warn } from "../../../publics/index";
 
@@ -10,15 +10,6 @@ function Moon(options: Object): void {
 
   this._init(options);
 }
-
-let aaa = {
-  name: "byy",
-  test() {
-    console.log(777777);
-  }
-};
-
-aaa.test();
 
 initMoon(Moon);
 

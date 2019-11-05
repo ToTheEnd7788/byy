@@ -1,3 +1,69 @@
+if (!Function.prototype.bind) {
+    Function.prototype.bind = function (o) {
+        if (typeof this !== 'function') {
+            throw TypeError("Bind must be called on a function");
+        }
+        var args = Array.prototype.slice.call(arguments, 1), self = this, nop = function () { }, bound = function () {
+            return self.apply(this instanceof nop ? this : o, args.concat(Array.prototype.slice.call(arguments)));
+        };
+        if (this.prototype)
+            nop.prototype = this.prototype;
+        bound.prototype = new nop();
+        return bound;
+    };
+}
+if (!Array.isArray) {
+    Array.isArray = function (o) {
+        return Boolean(o &&
+            Object.prototype.toString.call(Object(o)) === '[object Array]');
+    };
+}
+if (!Array.prototype.find) {
+    Array.prototype.find = function (callback) {
+        var result;
+        if (!callback) {
+            console.error("[Find]: params[0] is invalid");
+        }
+        else {
+            var o = this;
+            for (var i = 0; i < o.length; i++) {
+                if (callback(o[i], i)) {
+                    result = o[i];
+                    break;
+                }
+            }
+        }
+        return result;
+    };
+}
+if (!Array.prototype.find) {
+    Array.prototype.find = function (callback) {
+        var index = -1;
+        if (!callback) {
+            console.error("[Find]: params[0] is invalid");
+        }
+        else {
+            var o = this;
+            for (var i = 0; i < o.length; i++) {
+                if (callback(o[i], i)) {
+                    index = i;
+                    break;
+                }
+            }
+        }
+        return index;
+    };
+}
+if (!Object.keys) {
+    Object.keys = function (o) {
+        var res = [];
+        for (var key in o) {
+            res.push(key);
+        }
+        return res;
+    };
+}
+
 function warn(content) {
     console.error("Moon Error:\n" + content);
 }
@@ -108,7 +174,7 @@ function initMoon(Moon) {
                                 vm.components[name].props = Object.assign(vm.components[name].props, (_a = {},
                                     _a[propName] = {
                                         type: vm.components[name].props[propName].type,
-                                        default: vm.components[name].props[propName].default,
+                                        defaults: vm.components[name].props[propName].defaults,
                                         value: child_1._props[propName]
                                     },
                                     _a));
@@ -141,7 +207,7 @@ function initMoon(Moon) {
     };
     Moon.prototype._renderVNode = function (a, b, c) {
         if (b && b.attrs) {
-            var classes_1 = b.attrs.class || [];
+            var classes_1 = b.attrs.classes || [];
             if (Array.isArray(classes_1)) {
                 b.attrs.className = [b.attrs.className].concat(classes_1);
             }
@@ -154,7 +220,7 @@ function initMoon(Moon) {
             else {
                 warn("The attribute named [class] must be a Array or Object<string: boolean>.");
             }
-            delete b.attrs['class'];
+            delete b.attrs['classes'];
         }
         return {
             tag: a,
@@ -196,7 +262,7 @@ function initMoon(Moon) {
     Moon.prototype._get = function (name) {
         return this.data[name] || this.data[name] === false
             ? this.data[name]
-            : (this.props && (this.props[name].value || this.props[name].default));
+            : (this.props && (this.props[name].value || this.props[name].defaults));
     };
     Moon.prototype._set = function (name, value) {
         var _this = this;
@@ -333,13 +399,7 @@ function Moon(options) {
     }
     this._init(options);
 }
-var aaa = {
-    name: "byy",
-    test: function () {
-        console.log(777777);
-    }
-};
-aaa.test();
 initMoon(Moon);
+//# sourceMappingURL=index.js.map
 
 export default Moon;

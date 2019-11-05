@@ -110,7 +110,7 @@ export function initMoon(Moon) {
                 vm.components[name].props = Object.assign(vm.components[name].props, {
                   [propName]: {
                     type: vm.components[name].props[propName].type,
-                    default: vm.components[name].props[propName].default,
+                    defaults: vm.components[name].props[propName].defaults,
                     value: child._props[propName]
                   }
                 });
@@ -142,7 +142,7 @@ export function initMoon(Moon) {
 
   Moon.prototype._renderVNode = function(a: any, b: any, c: any) {
     if (b && b.attrs) {
-      let classes = b.attrs.class || [];
+      let classes = b.attrs.classes || [];
 
       if (Array.isArray(classes)) {
         b.attrs.className = [b.attrs.className].concat(classes);
@@ -156,7 +156,7 @@ export function initMoon(Moon) {
         warn(`The attribute named [class] must be a Array or Object<string: boolean>.`);
       }
 
-      delete b.attrs['class'];
+      delete b.attrs['classes'];
     }
 
     return {
@@ -203,7 +203,7 @@ export function initMoon(Moon) {
   Moon.prototype._get = function(name: string): any {
     return this.data[name] || this.data[name] === false
       ? this.data[name]
-      : (this.props && (this.props[name].value || this.props[name].default));
+      : (this.props && (this.props[name].value || this.props[name].defaults));
   };
 
   Moon.prototype._set = function(name: string, value: any) {
