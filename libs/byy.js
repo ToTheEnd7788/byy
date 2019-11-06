@@ -36,11 +36,11 @@ if (!Array.prototype.find) {
         return result;
     };
 }
-if (!Array.prototype.find) {
-    Array.prototype.find = function (callback) {
+if (!Array.prototype.findIndex) {
+    Array.prototype.findIndex = function (callback) {
         var index = -1;
         if (!callback) {
-            console.error("[Find]: params[0] is invalid");
+            console.error("[FindIndex]: params[0] is invalid");
         }
         else {
             var o = this;
@@ -63,6 +63,46 @@ if (!Object.keys) {
         return res;
     };
 }
+if (!Array.prototype.map) {
+    Array.prototype.map = function (callback) {
+        var res = [], o = this.slice(0);
+        for (var i = 0; i < o.length; i++) {
+            res.push(callback(o[i], i, o));
+        }
+        return res;
+    };
+}
+if (!Array.prototype.filter) {
+    Array.prototype.filter = function (callback) {
+        var res = [], o = this.slice(0);
+        for (var i = 0; i < o.length; i++) {
+            if (callback(o[i], i)) {
+                res.push(o[i]);
+            }
+        }
+        return res;
+    };
+}
+if (typeof Object.assign !== 'function') {
+    Object.assign = function assign(target, varArgs) {
+        if (target == null) {
+            throw new TypeError('Cannot convert undefined or null to object');
+        }
+        var to = Object(target);
+        for (var index = 1; index < arguments.length; index++) {
+            var nextSource = arguments[index];
+            if (nextSource != null) {
+                for (var nextKey in nextSource) {
+                    if (Object.prototype.hasOwnProperty.call(nextSource, nextKey)) {
+                        to[nextKey] = nextSource[nextKey];
+                    }
+                }
+            }
+        }
+        return to;
+    };
+}
+//# sourceMappingURL=shim.js.map
 
 function warn(content) {
     console.error("Moon Error:\n" + content);
@@ -80,8 +120,18 @@ function initMoon(Moon) {
     Moon.prototype._init = function (options) {
         var el = options.el, render = options.render;
         this._el = el;
-        this.$el = render(this._render.bind(this)).$el;
+        this.vm = render(this._render.bind(this));
+        this.$el = this.vm.$el;
         document.querySelector(this._el).appendChild(this.$el);
+        this._didInitRunner(this.vm);
+    };
+    Moon.prototype._didInitRunner = function (vm) {
+        vm.componentDidInit && vm.componentDidInit();
+        if (vm.components) {
+            for (var key in vm.components) {
+                this._didInitRunner(vm.components[key]);
+            }
+        }
     };
     Moon.prototype._render = function (vm) {
         vm = this._renderComponent(vm);
@@ -97,7 +147,7 @@ function initMoon(Moon) {
         for (var key in vNode.attrs) {
             if (key === 'style') {
                 for (var styleName in vNode.attrs[key]) {
-                    ele.style[styleName] = vNode.attrs[key][styleName];
+                    ele.style.setProperty(styleName, vNode.attrs[key][styleName]);
                 }
             }
             else if (key === 'className') {
@@ -137,10 +187,12 @@ function initMoon(Moon) {
                             warn("You have used a invalid bedecker named [" + eventNameInfo[1] + ",\nPlease check \"" + JSON.stringify(Object.keys(eventsBedecks)) + "\"");
                         }
                     }
+                    ele["on" + eventName] = null;
                     ele["on" + eventName] = function (e) {
+                        var evt = e || window.event;
                         if (bedeckHandler_1)
-                            bedeckHandler_1(e);
-                        var evt = e || window.event, argumentList = vNode._events[name].slice(1), eInstanceIndex = argumentList.findIndex(function (item) {
+                            bedeckHandler_1(evt);
+                        var argumentList = vNode._events[name].slice(1), eInstanceIndex = argumentList.findIndex(function (item) {
                             return item === '$event';
                         });
                         if (eInstanceIndex > -1) {
@@ -178,8 +230,16 @@ function initMoon(Moon) {
                                         value: child_1._props[propName]
                                     },
                                     _a));
+                                if (!vm._childTrigger) {
+                                    vm._childTrigger = {};
+                                    vm._childTrigger[name] = [propName];
+                                }
+                                else {
+                                    vm._childTrigger[name].push(propName);
+                                }
                             }
                             vm.components[name].vNode = vm.components[name].render(vm.components[name]._renderVNode);
+                            vm.components[name].vNode._originTag = name;
                         }
                         if (child_1._binds) {
                             for (var method in child_1._binds) {
@@ -232,6 +292,7 @@ function initMoon(Moon) {
         };
     };
     Moon.prototype._renderComponent = function (vm) {
+        vm.componentWillInit && vm.componentWillInit();
         vm.$get = this._get.bind(vm);
         vm.$set = this._set.bind(vm);
         vm._renderVNode = this._renderVNode;
@@ -245,10 +306,11 @@ function initMoon(Moon) {
         vm.$emit = this._emit;
         vm.$nextTick = this._nextTick;
         vm._queueTicker = [];
+        vm._updateChildProps = this._updateChildProps;
         transformMethods(vm);
         if (vm.components) {
             for (var key in vm.components) {
-                vm[key] = this._renderComponent(vm.components[key]);
+                vm.components[key] = this._renderComponent(vm.components[key]);
             }
         }
         if (vm.render) {
@@ -259,6 +321,31 @@ function initMoon(Moon) {
         }
         return vm;
     };
+    Moon.prototype._updateChildProps = function () {
+        var _getValue = function (child, compName, propName) {
+            var value;
+            for (var i = 0; i < child.length; i++) {
+                if (child[i].tag === compName) {
+                    value = child[i]._props && child[i]._props[propName];
+                    break;
+                }
+                else {
+                    if (child[i].children && child[i].children.length > 0) {
+                        value = _getValue(child[i].children, compName, propName);
+                    }
+                }
+            }
+            return value;
+        };
+        for (var compName in this._childTrigger) {
+            for (var _i = 0, _a = this._childTrigger[compName]; _i < _a.length; _i++) {
+                var propName = _a[_i];
+                this.components[compName].props &&
+                    this.components[compName].props[propName] &&
+                    this.components[compName].$set(propName, _getValue.call(this, this.vNode.children, compName, propName));
+            }
+        }
+    };
     Moon.prototype._get = function (name) {
         return this.data[name] || this.data[name] === false
             ? this.data[name]
@@ -266,11 +353,17 @@ function initMoon(Moon) {
     };
     Moon.prototype._set = function (name, value) {
         var _this = this;
+        console.log(111111, name, value, this);
         if (this.data[name] !== value) {
             if (this.watch) {
                 this.watch[name] && this.watch[name].call(this, this.data[name], value);
             }
-            this.data[name] = value;
+            if (this.data.hasOwnProperty(name)) {
+                this.data[name] = value;
+            }
+            else {
+                this.props && this.props[name] && (this.props[name].value = value);
+            }
             clearTimeout(this._setterTimer);
             this._setterTimer = null;
             this._setterTimer = setTimeout(function () {
@@ -280,6 +373,7 @@ function initMoon(Moon) {
                     _this._queueTicker[i]();
                 }
                 _this._queueTicker = [];
+                _this._updateChildProps();
             }, 10);
         }
     };
@@ -391,7 +485,6 @@ function initMoon(Moon) {
         this._addPatch(maps);
     };
 }
-//# sourceMappingURL=init.js.map
 
 function Moon(options) {
     if (!(this instanceof Moon)) {

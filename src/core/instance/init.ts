@@ -6,10 +6,23 @@ export function initMoon(Moon) {
     let { el, render } = options;
 
     this._el = el;
-    this.$el = render(this._render.bind(this)).$el;
+    this.vm = render(this._render.bind(this));
+    this.$el = this.vm.$el;
 
     document.querySelector(this._el).appendChild(this.$el);
+    this._didInitRunner(this.vm);
+
   };
+
+  Moon.prototype._didInitRunner = function(vm) {
+    vm.componentDidInit && vm.componentDidInit();
+
+    if (vm.components) {
+      for (let key in vm.components) {
+        this._didInitRunner(vm.components[key]);
+      }
+    }
+  }
 
   Moon.prototype._render = function(vm: Component) {
     vm = this._renderComponent(vm);
@@ -29,7 +42,7 @@ export function initMoon(Moon) {
     for (let key in vNode.attrs) {
       if (key === 'style') {
         for (let styleName in vNode.attrs[key]) {
-          ele.style[styleName] = vNode.attrs[key][styleName];
+          ele.style.setProperty(styleName, vNode.attrs[key][styleName]);
         }
       } else if (key === 'className') {
         ele[key] = vNode.attrs[key].join(" ");
@@ -72,10 +85,12 @@ export function initMoon(Moon) {
             }
           }
 
+          ele[`on${eventName}`] = null;
           ele[`on${eventName}`] = function(e) {
-            if (bedeckHandler) bedeckHandler(e);
-            let evt = e || window.event,
-              argumentList = vNode._events[name].slice(1),
+            let evt = e || window.event;
+
+            if (bedeckHandler) bedeckHandler(evt);
+              let argumentList = vNode._events[name].slice(1),
               eInstanceIndex = argumentList.findIndex(item => {
                 return item === '$event';
               });
@@ -114,9 +129,17 @@ export function initMoon(Moon) {
                     value: child._props[propName]
                   }
                 });
+
+                if (!vm._childTrigger) {
+                  vm._childTrigger = {};
+                  vm._childTrigger[name] = [propName];
+                } else {
+                  vm._childTrigger[name].push(propName);
+                }
               }
 
               vm.components[name].vNode = vm.components[name].render(vm.components[name]._renderVNode);
+              vm.components[name].vNode._originTag = name;
             }
 
             if (child._binds) {
@@ -126,7 +149,6 @@ export function initMoon(Moon) {
             }
 
             vm.components[name].$el = this._createELement(vm, vm.components[name]);
-            
             ele.appendChild(vm.components[name].$el);
           } else {
             ele.appendChild(this._createELement(vm, child));
@@ -170,6 +192,7 @@ export function initMoon(Moon) {
   }
 
   Moon.prototype._renderComponent = function(vm: Component) {
+    vm.componentWillInit && vm.componentWillInit();
     vm.$get = this._get.bind(vm);
     vm.$set = this._set.bind(vm);
     vm._renderVNode = this._renderVNode;
@@ -183,11 +206,12 @@ export function initMoon(Moon) {
     vm.$emit = this._emit;
     vm.$nextTick = this._nextTick;
     vm._queueTicker = [];
+    vm._updateChildProps = this._updateChildProps;
     transformMethods(vm);
     
     if (vm.components) {
       for (let key in vm.components) {
-        vm[key] = this._renderComponent(vm.components[key]);
+        vm.components[key] = this._renderComponent(vm.components[key]);
       }
     }
 
@@ -200,6 +224,35 @@ export function initMoon(Moon) {
     return vm;
   }
 
+  Moon.prototype._updateChildProps = function() {
+    let _getValue = function(child, compName, propName) {
+      let value;
+
+      for (let i = 0; i < child.length; i++) {
+        if (child[i].tag === compName) {
+          value = child[i]._props && child[i]._props[propName];
+          break;
+        } else {
+          if (child[i].children && child[i].children.length > 0) {
+            value = _getValue(child[i].children, compName, propName);
+          }
+        }
+      }
+
+      return value;
+    }
+
+    for (let compName in this._childTrigger) {
+      for (let propName of this._childTrigger[compName]) {
+        this.components[compName].props &&
+        this.components[compName].props[propName] &&
+        this.components[compName].$set(propName, _getValue.call(this, this.vNode.children, compName, propName));
+
+        // console.log(4444444, _getValue.call(this.vNode.children, compName, propName));
+      }
+    }
+  };
+
   Moon.prototype._get = function(name: string): any {
     return this.data[name] || this.data[name] === false
       ? this.data[name]
@@ -207,12 +260,19 @@ export function initMoon(Moon) {
   };
 
   Moon.prototype._set = function(name: string, value: any) {
+    console.log(111111, name, value, this);
     if (this.data[name] !== value) {
       // Trig watch
       if (this.watch) {
         this.watch[name] && this.watch[name].call(this, this.data[name], value);
       }
-      this.data[name] = value;
+
+      // Trig child component $set with props
+      if (this.data.hasOwnProperty(name)) {
+        this.data[name] = value;
+      } else {
+        this.props && this.props[name] && (this.props[name].value = value);
+      }
       clearTimeout(this._setterTimer);
       this._setterTimer = null;
 
@@ -227,6 +287,8 @@ export function initMoon(Moon) {
         }
 
         this._queueTicker = [];
+
+        this._updateChildProps();
       }, 10);
     }
   }

@@ -63,4 +63,6 @@ interface Component {
   _setterTimer: Object;
   _queueTicker: Array<Function>;
   _eventsBedecks: Object;
+  _childTrigger: Object;
+  _updateChildProps: Function;
 }
