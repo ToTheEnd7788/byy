@@ -8,14 +8,14 @@ export default {
   },
 
   props: {
-    upperData: {
+    asyncData: {
       type: String,
-      default: "123"
+      defaults: "666"
     }
   },
 
   watch: {
-    styleColor(newVal, oldVal) {
+    asyncData(newVal, oldVal) {
       console.log(newVal, oldVal, this);
     }
   },
@@ -49,13 +49,7 @@ export default {
       }
     }, [
       this.$get('msg'),
-      c('div', {
-        attrs: {
-          style: {
-            color: "orange"
-          }
-        }
-      }, [this.$get('upperData')])
+      this.$get('asyncData')
     ])
   }
 };

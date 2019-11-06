@@ -322,21 +322,21 @@ function initMoon(Moon) {
         return vm;
     };
     Moon.prototype._updateChildProps = function () {
-        var _getValue = function (child, compName, propName) {
+        function _getValue(childs, compName, propName) {
             var value;
-            for (var i = 0; i < child.length; i++) {
-                if (child[i].tag === compName) {
-                    value = child[i]._props && child[i]._props[propName];
+            for (var i = 0; i < childs.length; i++) {
+                if (childs[i].tag === compName) {
+                    value = childs[i]._props[propName];
                     break;
                 }
                 else {
-                    if (child[i].children && child[i].children.length > 0) {
-                        value = _getValue(child[i].children, compName, propName);
+                    if (childs[i].children && childs.length > 0) {
+                        value = _getValue(childs[i].children, compName, propName);
                     }
                 }
             }
             return value;
-        };
+        }
         for (var compName in this._childTrigger) {
             for (var _i = 0, _a = this._childTrigger[compName]; _i < _a.length; _i++) {
                 var propName = _a[_i];
@@ -352,18 +352,8 @@ function initMoon(Moon) {
             : (this.props && (this.props[name].value || this.props[name].defaults));
     };
     Moon.prototype._set = function (name, value) {
-        var _this = this;
-        console.log(111111, name, value, this);
-        if (this.data[name] !== value) {
-            if (this.watch) {
-                this.watch[name] && this.watch[name].call(this, this.data[name], value);
-            }
-            if (this.data.hasOwnProperty(name)) {
-                this.data[name] = value;
-            }
-            else {
-                this.props && this.props[name] && (this.props[name].value = value);
-            }
+        var pathCtrl = function () {
+            var _this = this;
             clearTimeout(this._setterTimer);
             this._setterTimer = null;
             this._setterTimer = setTimeout(function () {
@@ -375,6 +365,25 @@ function initMoon(Moon) {
                 _this._queueTicker = [];
                 _this._updateChildProps();
             }, 10);
+        };
+        if (this.data.hasOwnProperty(name)) {
+            if (this.data[name] !== value) {
+                if (this.watch) {
+                    this.watch[name] && this.watch[name].call(this, value, this.data[name]);
+                }
+                this.data[name] = value;
+                pathCtrl.call(this);
+            }
+        }
+        else {
+            if (this.props && this.props[name] && this.props[name].value !== value) {
+                if (this.watch) {
+                    var oldValue = this.props[name].value || this.props[name].defaults;
+                    this.watch[name] && this.watch[name].call(this, value, oldValue);
+                }
+                this.props[name].value = value;
+                pathCtrl.call(this);
+            }
         }
     };
     Moon.prototype._nextTick = function (callback) {

@@ -7,15 +7,20 @@ export default {
     msg: "Moon",
     spanContent: "App-Page",
     color: "red",
-    upperData: "来自父亲的数据"
+    upperData: "来自父亲的数据",
+    asyncData: "123"
   },
 
   components: {
     "test-one": TestOne
   },
 
-  componentWillInit() {
+  componentDidInit() {
     // console.log('TEST-LifeCycle: 组件即将渲染', this);
+
+    setTimeout(() => {
+      this.$set('asyncData', "456")
+    }, 1000)
   },
 
   methods: {
@@ -36,21 +41,17 @@ export default {
         click: [this.test, "libiao", "wmd"]
       },
     }, [
-      h('span', {
+      h('div', {
         attrs: {
-          className: "app-span"
+          className: "app__aaa"
         }
-      }, [
-        this.$get('msg'),
-        h('test-one', {
-          props: {
-            upperData: `${this.$get('upperData')}`
-          },
-          bind: {
-            "triggerParentTestMethod": this.test
-          }
-        })
-      ])
+      }),
+      this.$get("asyncData"),
+      h('test-one', {
+        props: {
+          asyncData: this.$get("asyncData")
+        }
+      })
     ])
   }
 };
