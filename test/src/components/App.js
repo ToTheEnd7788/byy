@@ -8,7 +8,20 @@ export default {
     spanContent: "App-Page",
     color: "red",
     upperData: "来自父亲的数据",
-    asyncData: "123"
+    asyncData: [
+      {
+        name: "1",
+        code: "333"
+      },
+      {
+        name: "2",
+        code: "333"
+      },
+      {
+        name: "3",
+        code: "333"
+      }
+    ]
   },
 
   components: {
@@ -19,7 +32,10 @@ export default {
     // console.log('TEST-LifeCycle: 组件即将渲染', this);
 
     setTimeout(() => {
-      this.$set('asyncData', "456")
+      let aaa = this.$get('asyncData').slice(0);
+
+      aaa.splice(1, 1);
+      this.$set('asyncData', aaa);
     }, 1000)
   },
 

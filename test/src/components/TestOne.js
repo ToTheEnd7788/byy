@@ -9,8 +9,8 @@ export default {
 
   props: {
     asyncData: {
-      type: String,
-      defaults: "666"
+      type: Array,
+      defaults: []
     }
   },
 
@@ -30,6 +30,16 @@ export default {
       })
 
       // this.$emit("triggerParentTestMethod", "byy", "wmd");
+    },
+
+    renderList(c) {
+      return this.$get('asyncData').map(item => {
+        return c('div', {
+          attrs: {
+            className: "aaaaaa"
+          }
+        }, [item.name])
+      });
     }
   },
 
@@ -47,9 +57,6 @@ export default {
       on: {
         "click.stop": [this.clickText, "arguments[0]", "$event"]
       }
-    }, [
-      this.$get('msg'),
-      this.$get('asyncData')
-    ])
+    }, this.renderList(c))
   }
 };
