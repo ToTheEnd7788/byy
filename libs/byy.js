@@ -121,6 +121,7 @@ function initMoon(Moon) {
         var el = options.el, render = options.render;
         this._el = el;
         this.vm = render(this._render.bind(this));
+        this.vm._el = document.querySelector(this._el);
         this.$el = this.vm.$el;
         document.querySelector(this._el).appendChild(this.$el);
         this._didInitRunner(this.vm);
@@ -129,6 +130,7 @@ function initMoon(Moon) {
         vm.componentDidInit && vm.componentDidInit();
         if (vm.components) {
             for (var key in vm.components) {
+                vm.components[key]._rootEl = vm._rootEl;
                 this._didInitRunner(vm.components[key]);
             }
         }
@@ -136,18 +138,14 @@ function initMoon(Moon) {
     Moon.prototype._render = function (vm) {
         vm = this._renderComponent(vm);
         vm.$el = this._createELement(vm);
+        vm._rootEl = vm.$el;
         return vm;
     };
-    Moon.prototype._createELement = function (vm, child) {
-        var vNode = child
-            ? (child.vNode
-                ? child.vNode
-                : child)
-            : vm.vNode, ele = document.createElement(vNode.tag);
+    Moon.prototype._updateElement = function (vNode, vm, ele) {
         for (var key in vNode.attrs) {
             if (key === 'style') {
                 for (var styleName in vNode.attrs[key]) {
-                    ele.style.setProperty(styleName, vNode.attrs[key][styleName]);
+                    ele.style[styleName] = vNode.attrs[key][styleName];
                 }
             }
             else if (key === 'className') {
@@ -209,60 +207,74 @@ function initMoon(Moon) {
         for (var name in vNode._events) {
             _loop_1(name);
         }
-        var _loop_2 = function (child_1) {
-            var _a;
-            if (typeof child_1 === 'string' || typeof child_1 === 'number' || typeof child_1 === 'boolean') {
-                ele.appendChild(document.createTextNode("" + child_1));
-            }
-            else {
-                if (vm.components) {
-                    var name = Object.keys(vm.components).find(function (tagName) {
-                        return tagName === child_1.tag;
-                    });
-                    if (name) {
-                        vm.components[name].$parent = vm;
-                        if (child_1._props) {
-                            for (var propName in child_1._props) {
-                                vm.components[name].props = Object.assign(vm.components[name].props, (_a = {},
-                                    _a[propName] = {
-                                        type: vm.components[name].props[propName].type,
-                                        defaults: vm.components[name].props[propName].defaults,
-                                        value: child_1._props[propName]
-                                    },
-                                    _a));
-                                if (!vm._childTrigger) {
-                                    vm._childTrigger = {};
-                                    vm._childTrigger[name] = [propName];
+        return ele;
+    };
+    Moon.prototype._createELement = function (vm, isChild, node) {
+        var ele, vNode = isChild
+            ? node
+            : vm.vNode;
+        if (typeof vNode !== "object") {
+            ele = document.createTextNode("" + vNode);
+        }
+        else {
+            ele = document.createElement(vNode.tag);
+            this._updateElement(vNode, vm, ele);
+            if (vNode.children) {
+                var _loop_2 = function (node_1) {
+                    var _a;
+                    if (vm.components) {
+                        var name = Object.keys(vm.components).find(function (item) {
+                            return node_1.tag && (node_1.tag === item);
+                        });
+                        if (name) {
+                            vm.components[name].$parent = vm;
+                            if (node_1._props) {
+                                for (var propName in node_1._props) {
+                                    vm.components[name].props = Object.assign(vm.components[name].props, (_a = {},
+                                        _a[propName] = {
+                                            type: vm.components[name].props[propName].type,
+                                            defaults: vm.components[name].props[propName].defaults,
+                                            value: node_1._props[propName]
+                                        },
+                                        _a));
+                                    if (!vm._childTrigger) {
+                                        vm._childTrigger = {};
+                                        vm._childTrigger[name] = [propName];
+                                    }
+                                    else {
+                                        if (!vm._childTrigger[name]) {
+                                            vm._childTrigger[name] = [propName];
+                                        }
+                                        else {
+                                            vm._childTrigger[name].push(propName);
+                                        }
+                                    }
                                 }
-                                else {
-                                    vm._childTrigger[name].push(propName);
+                                vm.components[name].vNode = vm.components[name].render(vm.components[name]._renderVNode);
+                                vm.components[name].vNode._originTag = name;
+                                if (node_1._binds) {
+                                    for (var method in node_1._binds) {
+                                        vm.components[name][method] = node_1._binds[method].bind(vm);
+                                    }
                                 }
                             }
-                            vm.components[name].vNode = vm.components[name].render(vm.components[name]._renderVNode);
-                            vm.components[name].vNode._originTag = name;
+                            ele.appendChild(vm.components[name]._createELement(vm.components[name]));
                         }
-                        if (child_1._binds) {
-                            for (var method in child_1._binds) {
-                                vm.components[name][method] = child_1._binds[method].bind(vm);
-                            }
+                        else {
+                            ele.appendChild(vm._createELement(vm, true, node_1));
                         }
-                        vm.components[name].$el = this_1._createELement(vm, vm.components[name]);
-                        ele.appendChild(vm.components[name].$el);
                     }
                     else {
-                        ele.appendChild(this_1._createELement(vm, child_1));
+                        ele.appendChild(vm._createELement(vm, true, node_1));
                     }
-                }
-                else {
-                    ele.appendChild(this_1._createELement(vm, child_1));
+                };
+                for (var _i = 0, _a = vNode.children; _i < _a.length; _i++) {
+                    var node_1 = _a[_i];
+                    _loop_2(node_1);
                 }
             }
-        };
-        var this_1 = this;
-        for (var _i = 0, _a = vNode.children; _i < _a.length; _i++) {
-            var child_1 = _a[_i];
-            _loop_2(child_1);
         }
+        vm.$el = ele;
         return ele;
     };
     Moon.prototype._renderVNode = function (a, b, c) {
@@ -303,6 +315,7 @@ function initMoon(Moon) {
         vm._updatePacher = this._updatePacher;
         vm._getTargetElement = this._getTargetElement;
         vm._setterTimer = null;
+        vm._updateElement = this._updateElement;
         vm.$emit = this._emit;
         vm.$nextTick = this._nextTick;
         vm._queueTicker = [];
@@ -323,36 +336,45 @@ function initMoon(Moon) {
     };
     Moon.prototype._updateChildProps = function () {
         function _getValue(childs, compName, propName) {
-            var value;
+            var result = { has: false, value: null };
             for (var i = 0; i < childs.length; i++) {
                 if (childs[i].tag === compName) {
-                    value = childs[i]._props[propName];
-                    break;
+                    result = {
+                        value: childs[i]._props[propName],
+                        has: true
+                    };
                 }
                 else {
-                    if (childs[i].children && childs.length > 0) {
-                        value = _getValue(childs[i].children, compName, propName);
+                    if (childs[i].children && childs[i].children.length > 0) {
+                        var _a = _getValue(childs[i].children, compName, propName), has = _a.has, value = _a.value;
+                        if (has) {
+                            result = {
+                                has: has,
+                                value: value
+                            };
+                            break;
+                        }
                     }
                 }
             }
-            return value;
+            return result;
         }
         for (var compName in this._childTrigger) {
             for (var _i = 0, _a = this._childTrigger[compName]; _i < _a.length; _i++) {
                 var propName = _a[_i];
                 this.components[compName].props &&
                     this.components[compName].props[propName] &&
-                    this.components[compName].$set(propName, _getValue.call(this, this.vNode.children, compName, propName));
+                    this.components[compName].$set(propName, _getValue.call(this, this.vNode.children, compName, propName).value);
             }
         }
     };
     Moon.prototype._get = function (name) {
-        return this.data[name] || this.data[name] === false
+        return this.data[name] || this.data[name] === false || this.data[name] === 0
             ? this.data[name]
             : (this.props && (this.props[name].value || this.props[name].defaults));
     };
     Moon.prototype._set = function (name, value) {
-        var pathCtrl = function () {
+        var patchCtrl = function () {
             var _this = this;
             clearTimeout(this._setterTimer);
             this._setterTimer = null;
@@ -372,7 +394,7 @@ function initMoon(Moon) {
                     this.watch[name] && this.watch[name].call(this, value, this.data[name]);
                 }
                 this.data[name] = value;
-                pathCtrl.call(this);
+                patchCtrl.call(this);
             }
         }
         else {
@@ -382,7 +404,7 @@ function initMoon(Moon) {
                     this.watch[name] && this.watch[name].call(this, value, oldValue);
                 }
                 this.props[name].value = value;
-                pathCtrl.call(this);
+                patchCtrl.call(this);
             }
         }
     };
@@ -394,7 +416,7 @@ function initMoon(Moon) {
         for (var _i = 1; _i < arguments.length; _i++) {
             values[_i - 1] = arguments[_i];
         }
-        this[name] && this[name].apply(this, values);
+        this.$parent[name] && this.$parent[name].apply(this, values);
     };
     Moon.prototype._diffAttrs = function (newVal, oldVal) {
         var diff = {};
@@ -478,7 +500,7 @@ function initMoon(Moon) {
         }
         else {
             if (newVNode.tag !== oldVNode.tag) {
-                this.$el.parentNode.replaceChild(this._createELement(this, newVNode), this.$el);
+                this.$el.parentNode.replaceChild(this._createELement(this), this.$el);
             }
             else {
                 maps.update = (_b = {},
@@ -494,6 +516,7 @@ function initMoon(Moon) {
         this._addPatch(maps);
     };
 }
+//# sourceMappingURL=init.js.map
 
 function Moon(options) {
     if (!(this instanceof Moon)) {

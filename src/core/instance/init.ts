@@ -7,6 +7,7 @@ export function initMoon(Moon) {
 
     this._el = el;
     this.vm = render(this._render.bind(this));
+    this.vm._el = document.querySelector(this._el);
     this.$el = this.vm.$el;
 
     document.querySelector(this._el).appendChild(this.$el);
@@ -16,9 +17,9 @@ export function initMoon(Moon) {
 
   Moon.prototype._didInitRunner = function(vm) {
     vm.componentDidInit && vm.componentDidInit();
-
     if (vm.components) {
       for (let key in vm.components) {
+        vm.components[key]._rootEl = vm._rootEl;
         this._didInitRunner(vm.components[key]);
       }
     }
@@ -27,22 +28,15 @@ export function initMoon(Moon) {
   Moon.prototype._render = function(vm: Component) {
     vm = this._renderComponent(vm);
     vm.$el = this._createELement(vm);
-
+    vm._rootEl = vm.$el;
     return vm;
   }
 
-  Moon.prototype._createELement = function(vm: Component, child: any) {
-    let vNode = child
-      ? (child.vNode
-          ? child.vNode
-          : child)
-      : vm.vNode,
-      ele = document.createElement(vNode.tag);
-
+  Moon.prototype._updateElement = function(vNode, vm, ele) {
     for (let key in vNode.attrs) {
       if (key === 'style') {
         for (let styleName in vNode.attrs[key]) {
-          ele.style.setProperty(styleName, vNode.attrs[key][styleName]);
+          ele.style[styleName] = vNode.attrs[key][styleName];
         }
       } else if (key === 'className') {
         ele[key] = vNode.attrs[key].join(" ");
@@ -107,58 +101,75 @@ export function initMoon(Moon) {
       }
     }
 
-    for (let child of vNode.children) {
-      if (typeof child === 'string' || typeof child === 'number' || typeof child === 'boolean') {
-        ele.appendChild(document.createTextNode(`${child}`));
-      } else {
-        // Searching in vm.components' key, if has same name with child's tag
-        // We need to render and append this component element in the position
-        if (vm.components) {
-          let name = Object.keys(vm.components).find(tagName => {
-            return tagName === child.tag;
-          });
-  
-          if (name) {
-            vm.components[name].$parent = vm;
-            if (child._props) {
-              for (let propName in child._props) {
-                vm.components[name].props = Object.assign(vm.components[name].props, {
-                  [propName]: {
-                    type: vm.components[name].props[propName].type,
-                    defaults: vm.components[name].props[propName].defaults,
-                    value: child._props[propName]
-                  }
-                });
+    return ele;
+  }
 
-                if (!vm._childTrigger) {
-                  vm._childTrigger = {};
-                  vm._childTrigger[name] = [propName];
-                } else {
-                  vm._childTrigger[name].push(propName);
+  Moon.prototype._createELement = function(vm, isChild, node) {
+    let ele,
+      vNode = isChild
+        ? node
+        : vm.vNode;
+
+    if (typeof vNode !== "object") {
+      ele = document.createTextNode(`${vNode}`);
+    } else {
+      ele = document.createElement(vNode.tag);
+      this._updateElement(vNode, vm, ele);
+
+      if (vNode.children) {
+        for (let node of vNode.children) {
+          if (vm.components) {
+            let name = Object.keys(vm.components).find(item => {
+              return node.tag && (node.tag === item);
+            });
+  
+            if (name) {
+              vm.components[name].$parent = vm;
+              if (node._props) {
+                for (let propName in node._props) {
+                  vm.components[name].props = Object.assign(vm.components[name].props, {
+                    [propName]: {
+                      type: vm.components[name].props[propName].type,
+                      defaults: vm.components[name].props[propName].defaults,
+                      value: node._props[propName]
+                    }
+                  });
+                  
+
+                  if (!vm._childTrigger) {
+                    vm._childTrigger = {};
+                    vm._childTrigger[name] = [propName];
+                  } else {
+                    if (!vm._childTrigger[name]) {
+                      vm._childTrigger[name] = [propName];
+                    } else {
+                      vm._childTrigger[name].push(propName);
+                    }
+                  }
+                }
+  
+                vm.components[name].vNode = vm.components[name].render(vm.components[name]._renderVNode);
+                vm.components[name].vNode._originTag = name;
+
+                if (node._binds) {
+                  for (let method in node._binds) {
+                    vm.components[name][method] = node._binds[method].bind(vm);
+                  }
                 }
               }
 
-              vm.components[name].vNode = vm.components[name].render(vm.components[name]._renderVNode);
-              vm.components[name].vNode._originTag = name;
+              ele.appendChild(vm.components[name]._createELement(vm.components[name]));
+            } else {
+              ele.appendChild(vm._createELement(vm, true, node));
             }
-
-            if (child._binds) {
-              for (let method in child._binds) {
-                vm.components[name][method] = child._binds[method].bind(vm);
-              }
-            }
-
-            vm.components[name].$el = this._createELement(vm, vm.components[name]);
-            ele.appendChild(vm.components[name].$el);
           } else {
-            ele.appendChild(this._createELement(vm, child));
+            ele.appendChild(vm._createELement(vm, true, node));
           }
-        } else {
-          ele.appendChild(this._createELement(vm, child));
         }
       }
     }
 
+    vm.$el = ele;
     return ele;
   };
 
@@ -203,6 +214,7 @@ export function initMoon(Moon) {
     vm._updatePacher = this._updatePacher;
     vm._getTargetElement = this._getTargetElement;
     vm._setterTimer = null;
+    vm._updateElement = this._updateElement;
     vm.$emit = this._emit;
     vm.$nextTick = this._nextTick;
     vm._queueTicker = [];
@@ -226,39 +238,49 @@ export function initMoon(Moon) {
 
   Moon.prototype._updateChildProps = function() {
     function _getValue(childs, compName, propName) {
-      let value;
+      let result = {has: false, value: null};
 
       for (let i = 0; i < childs.length; i++) {
         if (childs[i].tag === compName) {
-          value = childs[i]._props[propName];
-          break;
+          result = {
+            value: childs[i]._props[propName],
+            has: true
+          };
         } else {
-          if (childs[i].children && childs.length > 0) {
-            value = _getValue(childs[i].children, compName, propName);
+          if (childs[i].children && childs[i].children.length > 0) {
+            let { has, value } = _getValue(childs[i].children, compName, propName);
+            if (has) {
+              result = {
+                has,
+                value
+              }
+
+              break;
+            }
           }
         }
       }
 
-      return value;
+      return result;
     }
 
     for (let compName in this._childTrigger) {
       for (let propName of this._childTrigger[compName]) {
         this.components[compName].props &&
         this.components[compName].props[propName] &&
-        this.components[compName].$set(propName, _getValue.call(this, this.vNode.children, compName, propName));
+        this.components[compName].$set(propName, _getValue.call(this, this.vNode.children, compName, propName).value);
       }
     }
   };
 
   Moon.prototype._get = function(name: string): any {
-    return this.data[name] || this.data[name] === false
+    return this.data[name] || this.data[name] === false || this.data[name] === 0
       ? this.data[name]
       : (this.props && (this.props[name].value || this.props[name].defaults));
   };
 
   Moon.prototype._set = function(name: string, value: any) {
-    let pathCtrl = function() {
+    let patchCtrl = function() {
       clearTimeout(this._setterTimer);
       this._setterTimer = null;
 
@@ -285,7 +307,7 @@ export function initMoon(Moon) {
         }
 
         this.data[name] = value;
-        pathCtrl.call(this);
+        patchCtrl.call(this);
       }
     } else {
       if (this.props && this.props[name] && this.props[name].value !== value) {
@@ -294,7 +316,7 @@ export function initMoon(Moon) {
           this.watch[name] && this.watch[name].call(this, value, oldValue);
         }
         this.props[name].value = value;
-        pathCtrl.call(this);
+        patchCtrl.call(this);
       }
     }
   }
@@ -304,7 +326,7 @@ export function initMoon(Moon) {
   };
 
   Moon.prototype._emit = function(name: string, ...values: any[] ) {
-    this[name] && this[name].apply(this, values);
+    this.$parent[name] && this.$parent[name].apply(this, values);
   }
 
   Moon.prototype._diffAttrs = function(newVal, oldVal) {
@@ -400,7 +422,7 @@ export function initMoon(Moon) {
     } else {
       if (newVNode.tag !== oldVNode.tag) {
         this.$el.parentNode.replaceChild(
-          this._createELement(this, newVNode),
+          this._createELement(this),
           this.$el
         );
       } else {

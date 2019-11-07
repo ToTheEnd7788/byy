@@ -53,6 +53,7 @@ interface Component {
   componentDidDestroy?: Function;
   render?: Function;
   _renderVNode: Function;
+  _rootEl: HTMLElement;
   _createELement: Function;
   _diffAttrs: Function;
   _createVnode: Function;
@@ -65,4 +66,5 @@ interface Component {
   _eventsBedecks: Object;
   _childTrigger: Object;
   _updateChildProps: Function;
+  _updateElement: Function;
 }
