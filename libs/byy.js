@@ -102,16 +102,19 @@ if (typeof Object.assign !== 'function') {
         return to;
     };
 }
+//# sourceMappingURL=shim.js.map
 
 function warn(content) {
     console.error("Moon Error:\n" + content);
 }
+//# sourceMappingURL=index.js.map
 
 var transformMethods = function (vm) {
     for (var name in vm.methods) {
         vm[name] = vm.methods[name].bind(vm);
     }
 };
+//# sourceMappingURL=compiler.js.map
 
 function initMoon(Moon) {
     Moon.prototype._init = function (options) {
@@ -271,7 +274,9 @@ function initMoon(Moon) {
                 }
             }
         }
-        vm.$el = ele;
+        if (!isChild) {
+            vm.$el = ele;
+        }
         return ele;
     };
     Moon.prototype._renderVNode = function (a, b, c) {
@@ -317,6 +322,8 @@ function initMoon(Moon) {
         vm.$nextTick = this._nextTick;
         vm._queueTicker = [];
         vm._updateChildProps = this._updateChildProps;
+        vm._removeEndDom = this._removeEndDom;
+        vm._addDom = this._addDom;
         transformMethods(vm);
         if (vm.components) {
             for (var key in vm.components) {
@@ -419,7 +426,9 @@ function initMoon(Moon) {
         var diff = {};
         for (var name in newVal) {
             if (Array.isArray(newVal[name])) {
-                diff[name] = newVal[name];
+                if (JSON.stringify(newVal[name]) !== JSON.stringify(oldVal[name])) {
+                    diff[name] = newVal[name];
+                }
             }
             else if (newVal[name] !== oldVal[name]) {
                 if (typeof newVal[name] === 'object') {
@@ -464,6 +473,17 @@ function initMoon(Moon) {
         }
         return target;
     };
+    Moon.prototype._removeEndDom = function (ele, length) {
+        for (var i = 0; i < length; i++) {
+            ele.removeChild(ele.lastChild);
+        }
+    };
+    Moon.prototype._addDom = function (ele, vNodes) {
+        for (var _i = 0, vNodes_1 = vNodes; _i < vNodes_1.length; _i++) {
+            var vNode = vNodes_1[_i];
+            ele.appendChild(this._createELement(this, true, vNode));
+        }
+    };
     Moon.prototype._addPatch = function (differ) {
         for (var name in differ) {
             if (name === 'update') {
@@ -472,28 +492,53 @@ function initMoon(Moon) {
                         this._updatePacher(this.$el, differ[name][position]);
                     }
                     else {
-                        this._updatePacher(this._getTargetElement(this.$el, position), differ[name][position]);
+                        if (Object.keys(differ[name][position]).length > 0) {
+                            this._updatePacher(this._getTargetElement(this.$el, position), differ[name][position]);
+                        }
+                    }
+                }
+            }
+            else if (name === 'remove') {
+                for (var position in differ[name]) {
+                    if (position === '0') {
+                        this._removeEndDom(this.$el, differ[name][position]);
+                    }
+                    else {
+                        this._removeEndDom(this._getTargetElement(this.$el, position), differ[name][position]);
+                    }
+                }
+            }
+            else if (name === 'addDom') {
+                for (var position in differ[name]) {
+                    if (position === '0') {
+                        this._addDom(this.$el, differ[name][position]);
+                    }
+                    else {
+                        this._addDom(this._getTargetElement(this.$el, position), differ[name][position]);
                     }
                 }
             }
         }
     };
     Moon.prototype._patch = function (newVNode, oldVNode, index) {
-        var _a, _b;
+        var _a, _b, _c, _d;
         var maps = {
             update: {},
-            move: {},
-            insert: {}
+            remove: {},
+            insert: {},
+            addDom: {}
         };
         var sign = index
             ? index
             : "0";
         if (typeof newVNode === 'string') {
-            maps.update = (_a = {},
-                _a[sign] = {
-                    nodeValue: newVNode
-                },
-                _a);
+            if (newVNode !== oldVNode) {
+                maps.update = (_a = {},
+                    _a[sign] = {
+                        nodeValue: newVNode
+                    },
+                    _a);
+            }
         }
         else {
             if (newVNode.tag !== oldVNode.tag) {
@@ -505,7 +550,18 @@ function initMoon(Moon) {
                     _b);
             }
             if (newVNode.children) {
-                for (var i = 0; i < newVNode.children.length; i++) {
+                var distance = oldVNode.children.length - newVNode.children.length;
+                if (distance > 0) {
+                    maps.remove = (_c = {},
+                        _c[sign] = distance,
+                        _c);
+                }
+                else if (distance < 0) {
+                    maps.addDom = (_d = {},
+                        _d[sign] = newVNode.children.slice(distance),
+                        _d);
+                }
+                for (var i = 0; i < oldVNode.children.length; i++) {
                     this._patch.call(this, newVNode.children[i], oldVNode.children[i], sign + "-" + i);
                 }
             }
@@ -513,6 +569,7 @@ function initMoon(Moon) {
         this._addPatch(maps);
     };
 }
+//# sourceMappingURL=init.js.map
 
 function Moon(options) {
     if (!(this instanceof Moon)) {
@@ -521,5 +578,6 @@ function Moon(options) {
     this._init(options);
 }
 initMoon(Moon);
+//# sourceMappingURL=index.js.map
 
 export default Moon;

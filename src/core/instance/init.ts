@@ -100,7 +100,6 @@ export function initMoon(Moon) {
         }
       }
     }
-
     return ele;
   }
 
@@ -169,7 +168,9 @@ export function initMoon(Moon) {
       }
     }
 
-    vm.$el = ele;
+    if (!isChild) {
+      vm.$el = ele;
+    }
     return ele;
   };
 
@@ -219,6 +220,8 @@ export function initMoon(Moon) {
     vm.$nextTick = this._nextTick;
     vm._queueTicker = [];
     vm._updateChildProps = this._updateChildProps;
+    vm._removeEndDom = this._removeEndDom;
+    vm._addDom = this._addDom;
     transformMethods(vm);
     
     if (vm.components) {
@@ -333,7 +336,9 @@ export function initMoon(Moon) {
     let diff = {};
     for (let name in newVal) {
       if (Array.isArray(newVal[name])) {
-        diff[name] = newVal[name];
+        if (JSON.stringify(newVal[name]) !== JSON.stringify(oldVal[name])) {
+          diff[name] = newVal[name];
+        }
       } else if (newVal[name] !== oldVal[name]) {
         if (typeof newVal[name] === 'object') {
           if (diff[name]) {
@@ -385,6 +390,18 @@ export function initMoon(Moon) {
     return target;
   };
 
+  Moon.prototype._removeEndDom = function(ele, length) {
+    for (let i = 0; i < length; i++) {
+      ele.removeChild(ele.lastChild);
+    }
+  }
+
+  Moon.prototype._addDom = function(ele, vNodes) {
+    for (let vNode of vNodes) {
+      ele.appendChild(this._createELement(this, true, vNode));
+    }
+  }
+
   Moon.prototype._addPatch = function(differ: any) {
     for (let name in differ) {
       if (name === 'update') {
@@ -392,21 +409,46 @@ export function initMoon(Moon) {
           if (position === '0') {
             this._updatePacher(this.$el, differ[name][position]);
           } else {
-            this._updatePacher(
-              this._getTargetElement(this.$el, position),
-              differ[name][position]
-            );
+            if (Object.keys(differ[name][position]).length > 0) {
+              this._updatePacher(
+                this._getTargetElement(this.$el, position),
+                differ[name][position]
+              );
+            }
           }
         }
-      };
+      } else if (name === 'remove') {
+        for (let position in differ[name]) {
+          if (position === '0') {
+            this._removeEndDom(this.$el, differ[name][position]);
+          } else {
+            this._removeEndDom(
+              this._getTargetElement(this.$el, position),
+              differ[name][position]
+            )
+          }
+        }
+      } else if (name === 'addDom') {
+        for (let position in differ[name]) {
+          if (position === '0') {
+            this._addDom(this.$el, differ[name][position]);
+          } else {
+            this._addDom(
+              this._getTargetElement(this.$el, position),
+              differ[name][position]
+            )
+          }
+        }
+      }
     }
   };
 
   Moon.prototype._patch = function(newVNode, oldVNode, index) {
     let maps = {
       update: {},
-      move: {},
-      insert: {}
+      remove: {},
+      insert: {},
+      addDom: {}
     };
 
     let sign = index
@@ -414,11 +456,13 @@ export function initMoon(Moon) {
       : "0"
 
     if (typeof newVNode === 'string') {
-      maps.update = {
-        [sign]: {
-          nodeValue: newVNode
-        }
-      };
+      if (newVNode !== oldVNode) {
+        maps.update = {
+          [sign]: {
+            nodeValue: newVNode
+          }
+        };
+      }
     } else {
       if (newVNode.tag !== oldVNode.tag) {
         this.$el.parentNode.replaceChild(
@@ -432,12 +476,27 @@ export function initMoon(Moon) {
       }
 
       if (newVNode.children) {
-        for (let i = 0; i < newVNode.children.length; i++) {
+        let distance = oldVNode.children.length - newVNode.children.length;
+        
+        if (distance > 0) {
+          maps.remove = {
+            [sign]: distance
+          };
+          
+        } else if (distance < 0) {
+          maps.addDom = {
+            [sign]: newVNode.children.slice(distance)
+          };
+        }
+
+        for (let i = 0; i < oldVNode.children.length; i++) {
           this._patch.call(this, newVNode.children[i], oldVNode.children[i], `${sign}-${i}`);
         }
+
       }
-      
     }
+
+    // console.log(333333, maps);
 
     this._addPatch(maps);
   }

@@ -33,8 +33,13 @@ export default {
 
     setTimeout(() => {
       let aaa = this.$get('asyncData').slice(0);
-
+      
       aaa.splice(1, 1);
+      aaa.push({name: "tnm", code: "3333"})
+      aaa.splice(0, 1);
+      aaa.splice(1, 1);
+      aaa.push({name: "tnm213123", code: "3333"})
+      console.log(aaa);
       this.$set('asyncData', aaa);
     }, 1000)
   },

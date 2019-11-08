@@ -16,7 +16,7 @@ export default {
 
   watch: {
     asyncData(newVal, oldVal) {
-      console.log(newVal, oldVal, this);
+      // console.log(newVal, oldVal, this);
     }
   },
 

@@ -67,4 +67,6 @@ interface Component {
   _childTrigger: Object;
   _updateChildProps: Function;
   _updateElement: Function;
+  _removeEndDom: Function;
+  _addDom: Function;
 }
