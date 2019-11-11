@@ -464,39 +464,42 @@ export function initMoon(Moon) {
         };
       }
     } else {
-      if (newVNode.tag !== oldVNode.tag) {
-        this.$el.parentNode.replaceChild(
-          this._createELement(this),
-          this.$el
-        );
+      if (newVNode && oldVNode) {
+        if (newVNode.tag !== oldVNode.tag) {
+          this.$el.parentNode.replaceChild(
+            this._createELement(this),
+            this.$el
+          );
+        } else {
+          maps.update = {
+            [sign]: this._diffAttrs.call(this, newVNode.attrs, oldVNode.attrs)
+          };
+        }
+
+        if (newVNode.children) {
+          let distance = oldVNode.children.length - newVNode.children.length;
+          
+          if (distance > 0) {
+            maps.remove = {
+              [sign]: distance
+            };
+            
+          } else if (distance < 0) {
+            maps.addDom = {
+              [sign]: newVNode.children.slice(distance)
+            };
+          }
+  
+          for (let i = 0; i < oldVNode.children.length; i++) {
+            this._patch.call(this, newVNode.children[i], oldVNode.children[i], `${sign}-${i}`);
+          }
+        }
       } else {
-        maps.update = {
-          [sign]: this._diffAttrs.call(this, newVNode.attrs, oldVNode.attrs)
+        maps.remove = {
+          [sign]: 1
         };
       }
-
-      if (newVNode.children) {
-        let distance = oldVNode.children.length - newVNode.children.length;
-        
-        if (distance > 0) {
-          maps.remove = {
-            [sign]: distance
-          };
-          
-        } else if (distance < 0) {
-          maps.addDom = {
-            [sign]: newVNode.children.slice(distance)
-          };
-        }
-
-        for (let i = 0; i < oldVNode.children.length; i++) {
-          this._patch.call(this, newVNode.children[i], oldVNode.children[i], `${sign}-${i}`);
-        }
-
-      }
     }
-
-    // console.log(333333, maps);
 
     this._addPatch(maps);
   }

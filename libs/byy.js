@@ -521,7 +521,7 @@ function initMoon(Moon) {
         }
     };
     Moon.prototype._patch = function (newVNode, oldVNode, index) {
-        var _a, _b, _c, _d;
+        var _a, _b, _c, _d, _e;
         var maps = {
             update: {},
             remove: {},
@@ -541,35 +541,41 @@ function initMoon(Moon) {
             }
         }
         else {
-            if (newVNode.tag !== oldVNode.tag) {
-                this.$el.parentNode.replaceChild(this._createELement(this), this.$el);
+            if (newVNode && oldVNode) {
+                if (newVNode.tag !== oldVNode.tag) {
+                    this.$el.parentNode.replaceChild(this._createELement(this), this.$el);
+                }
+                else {
+                    maps.update = (_b = {},
+                        _b[sign] = this._diffAttrs.call(this, newVNode.attrs, oldVNode.attrs),
+                        _b);
+                }
+                if (newVNode.children) {
+                    var distance = oldVNode.children.length - newVNode.children.length;
+                    if (distance > 0) {
+                        maps.remove = (_c = {},
+                            _c[sign] = distance,
+                            _c);
+                    }
+                    else if (distance < 0) {
+                        maps.addDom = (_d = {},
+                            _d[sign] = newVNode.children.slice(distance),
+                            _d);
+                    }
+                    for (var i = 0; i < oldVNode.children.length; i++) {
+                        this._patch.call(this, newVNode.children[i], oldVNode.children[i], sign + "-" + i);
+                    }
+                }
             }
             else {
-                maps.update = (_b = {},
-                    _b[sign] = this._diffAttrs.call(this, newVNode.attrs, oldVNode.attrs),
-                    _b);
-            }
-            if (newVNode.children) {
-                var distance = oldVNode.children.length - newVNode.children.length;
-                if (distance > 0) {
-                    maps.remove = (_c = {},
-                        _c[sign] = distance,
-                        _c);
-                }
-                else if (distance < 0) {
-                    maps.addDom = (_d = {},
-                        _d[sign] = newVNode.children.slice(distance),
-                        _d);
-                }
-                for (var i = 0; i < oldVNode.children.length; i++) {
-                    this._patch.call(this, newVNode.children[i], oldVNode.children[i], sign + "-" + i);
-                }
+                maps.remove = (_e = {},
+                    _e[sign] = 1,
+                    _e);
             }
         }
         this._addPatch(maps);
     };
 }
-//# sourceMappingURL=init.js.map
 
 function Moon(options) {
     if (!(this instanceof Moon)) {
