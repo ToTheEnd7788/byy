@@ -102,19 +102,16 @@ if (typeof Object.assign !== 'function') {
         return to;
     };
 }
-//# sourceMappingURL=shim.js.map
 
 function warn(content) {
     console.error("Moon Error:\n" + content);
 }
-//# sourceMappingURL=index.js.map
 
 var transformMethods = function (vm) {
     for (var name in vm.methods) {
         vm[name] = vm.methods[name].bind(vm);
     }
 };
-//# sourceMappingURL=compiler.js.map
 
 function initMoon(Moon) {
     Moon.prototype._init = function (options) {
@@ -584,6 +581,5 @@ function Moon(options) {
     this._init(options);
 }
 initMoon(Moon);
-//# sourceMappingURL=index.js.map
 
 export default Moon;
