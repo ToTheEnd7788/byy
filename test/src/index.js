@@ -1,4 +1,4 @@
-import Moon from "../../libs/byy";
+import Moon from "../../libs/index";
 
 import App from "./components/App.js";
 

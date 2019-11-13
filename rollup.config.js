@@ -2,7 +2,7 @@ import typescriptPlugin from "rollup-plugin-typescript";
 import { terser } from 'rollup-plugin-terser';
 
 module.exports = {
-  input: "./src/core/instance/index.ts",
+  input: "./src/core/index.ts",
   plugins: [
     // babel({
     //   exclude: 'node_modules/**',
@@ -12,7 +12,7 @@ module.exports = {
     // terser(),
   ],
   output: {
-    file: "libs/byy.js",
+    file: "libs/index.js",
     format: "es"
   }
 };

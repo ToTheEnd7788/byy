@@ -1,72 +1,42 @@
-interface Data {
-  (): Object;
+interface Vnode {
+  key?: string;
+  tag?: string;
+  nodeType: number;
+  attrs?: object;
+  className?: string | object;
+  on?: object;
+  bind?: object;
+  children?: Array<Vnode>;
 }
 
-interface ParentComponent {
-  (): Component;
+interface CreateVNode {
+  (a: string, b: object, c: Array<any>): Vnode;
 }
 
-interface Ctrl {
-  (name: string, value?: any): void;
+interface Render {
+  (c: Function): Vnode
 }
-
-interface $WATCHER_CALLBACK {
-  (newVal: any, oldVal: any): void;
-}
-
-interface VNode {
-  tag: string;
-  children: Array<VNode>;
-  attrs?: Object;
-  on?: Object;
-  bind?: Object;
-  _events: Object;
-}
-
-interface Options {
+declare class Configs {
   el: string;
-  name: string;
-  render: Function;
+  render: Render;
+  autoRender?: Boolean;
 }
 
-interface Component {
+declare class Components {
   $el: HTMLElement;
-  $set: Ctrl;
-  $get: Ctrl;
-  $on: Function;
+  name: string;
+  props: object;
+  methods: object;
+  watch: object;
+  computed: object;
+  vNode: Vnode;
   $emit: Function;
+  $on: Function;
   $nextTick: Function;
-  $parent: ParentComponent;
-  vNode: VNode;
-  data?: Data;
-  components: Object;
-  methods?: Object;
-  props?: Object;
-  watch?: Object;
-  name?: string;
-  component: Component;
-  componentWillInit?: Function;
-  componentDidInit?: Function;
-  componentWillUpdate?: Function;
-  componentDidUpdate?: Function;
-  componentWillDestroy?: Function;
-  componentDidDestroy?: Function;
-  render?: Function;
-  _renderVNode: Function;
-  _rootEl: HTMLElement;
-  _createELement: Function;
-  _diffAttrs: Function;
-  _createVnode: Function;
-  _patch: Function;
-  _addPatch: Function;
-  _updatePacher: Function;
-  _getTargetElement: Function;
-  _setterTimer: Object;
-  _queueTicker: Array<Function>;
-  _eventsBedecks: Object;
-  _childTrigger: Object;
-  _updateChildProps: Function;
-  _updateElement: Function;
-  _removeEndDom: Function;
-  _addDom: Function;
+  $get: Function;
+  $set: Function;
+  $parent: Function;
+  data: Function;
+  created: Function;
+  mounted: Function;
 }
