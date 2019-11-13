@@ -1,9 +1,11 @@
 export default {
   name: "app",
 
-  data: {
-    msg: "Moon",
-    spanContent: "App-Page"
+  data() {
+    return {
+      msg: "Moon",
+      spanContent: "App-Page"
+    };
   },
 
   render(c) {

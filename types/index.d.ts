@@ -1,4 +1,4 @@
-interface Vnode {
+declare type Vnode = {
   key?: string;
   tag?: string;
   nodeType: number;
@@ -9,20 +9,20 @@ interface Vnode {
   children?: Array<Vnode>;
 }
 
-interface CreateVNode {
+declare type CreateVNode = {
   (a: string, b: object, c: Array<any>): Vnode;
 }
 
-interface Render {
+declare type Render = {
   (c: Function): Vnode
 }
-declare class Configs {
+declare type Configs = {
   el: string;
   render: Render;
   autoRender?: Boolean;
 }
 
-declare class Components {
+declare type Components = {
   $el: HTMLElement;
   name: string;
   props: object;

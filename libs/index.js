@@ -133,19 +133,20 @@ if (typeof Object.assign !== 'function') {
 }
 //# sourceMappingURL=shim.js.map
 
-var Component = (function (_super) {
-    __extends(Component, _super);
-    function Component() {
-        var _this = _super.call(this) || this;
-        _this.name = "123123";
-        return _this;
+function warn(content) {
+    console.error("Moon Error:\n" + content);
+}
+//# sourceMappingURL=index.js.map
+
+var Context = (function () {
+    function Context() {
     }
-    Component.prototype.test = function (name) {
-        this.name = "123123";
+    Context.prototype._createVNode = function (a, b, c, t) {
+        console.log(111111, a, this);
     };
-    return Component;
-}(Components));
-//# sourceMappingURL=component.js.map
+    return Context;
+}());
+//# sourceMappingURL=context.js.map
 
 var Moon = (function (_super) {
     __extends(Moon, _super);
@@ -158,15 +159,23 @@ var Moon = (function (_super) {
         _this.el = el;
         _this.render = render;
         _this.autoRender = autoRender;
-        _this._init();
+        _this.vNode;
+        _this.__init();
         return _this;
     }
-    Moon.prototype._init = function () {
-        console.log(3333333, this);
-        console.log(4444444, new Component());
+    Moon.prototype.__init = function () {
+        if (!this.el || !document.querySelector(this.el)) {
+            warn("Please set valid el value, then I can get correct mounted element");
+        }
+        else if (!this.render) {
+            warn("The render function is required, please check");
+        }
+        else {
+            this._el = document.querySelector(this.el);
+            this.vNode = this.render(this._createVNode);
+        }
     };
     return Moon;
-}(Configs));
-//# sourceMappingURL=index.js.map
+}(Context));
 
 export default Moon;

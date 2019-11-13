@@ -1,4 +1,6 @@
-class Component extends Components {
+import Context from "./context";
+
+class Component extends Context {
   $el: HTMLElement;
   name: string;
   props: object;
@@ -15,13 +17,25 @@ class Component extends Components {
   data: Function;
   created: Function;
   mounted: Function;
+
   constructor() {
     super();
-    this.name = "123123";
-  }
-
-  test(name?: string) {
-    this.name = "123123";
+    this.$el;
+    this.name = "123";
+    this.props;
+    this.methods;
+    this.watch;
+    this.computed;
+    this.vNode;
+    this.$emit;
+    this.$on;
+    this.$nextTick;
+    this.$get;
+    this.$set;
+    this.$parent;
+    this.data;
+    this.created;
+    this.mounted;
   }
 };
 
