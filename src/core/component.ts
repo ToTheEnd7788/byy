@@ -89,6 +89,7 @@ class Component {
     } else if (node.nodeType === 3) {
       ele = document.createTextNode(node.text);
     } else if (node.nodeType === "component") {
+      console.log(333333, node, this.vm);
       ele = this.vm.components[node.tag].$el;
     }
 
@@ -166,6 +167,10 @@ class Component {
       : (this.props && this.props[name]);
   }
 
+  _set(name: string, val: any) {
+    console.log(111111, this, name, val);
+  }
+
   _createComponent() {
     if (!this.vm.render) {
       warn(`The compoennt named [${this.vm.name}]'s render function is required`);
@@ -175,6 +180,7 @@ class Component {
       this._createChildrenComponent();
 
       this.vm.$get = this._get;
+      this.vm.$set = this._set;
       this.vm._vNode = this.vm.render(this._createVnode.bind(this.vm));
       this.vm.$el = this._createElement(this.vm._vNode);
     }

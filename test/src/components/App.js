@@ -24,6 +24,7 @@ export default {
     },
     childClicked(a) {
       console.log('child', a);
+      this.$set('msg', "moon");
     }
   },
 
@@ -55,7 +56,11 @@ export default {
           "click.stop": [this.childClicked, "byy"]
         }
       }, [
-        c("test-one")
+        c("test-one", {
+          props: {
+            name: this.$get('msg')
+          }
+        })
       ])
     ])
   }

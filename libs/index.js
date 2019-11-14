@@ -245,6 +245,7 @@ var Component = (function () {
             ele = document.createTextNode(node.text);
         }
         else if (node.nodeType === "component") {
+            console.log(333333, node, this.vm);
             ele = this.vm.components[node.tag].$el;
         }
         if (node.children && node.children.length > 0) {
@@ -298,6 +299,9 @@ var Component = (function () {
             ? data[name]
             : (this.props && this.props[name]);
     };
+    Component.prototype._set = function (name, val) {
+        console.log(111111, this, name, val);
+    };
     Component.prototype._createComponent = function () {
         if (!this.vm.render) {
             warn("The compoennt named [" + this.vm.name + "]'s render function is required");
@@ -307,6 +311,7 @@ var Component = (function () {
             this.vm.created && this.vm.created();
             this._createChildrenComponent();
             this.vm.$get = this._get;
+            this.vm.$set = this._set;
             this.vm._vNode = this.vm.render(this._createVnode.bind(this.vm));
             this.vm.$el = this._createElement(this.vm._vNode);
         }

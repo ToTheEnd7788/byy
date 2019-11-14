@@ -11,6 +11,13 @@ export default {
     // console.log("child-created", this);
   },
 
+  props: {
+    name: {
+      type: String,
+      initial: "Byy"
+    }
+  },
+
   render(c) {
     return c('div', {
       className: "test-one",
