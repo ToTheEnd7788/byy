@@ -4,7 +4,5 @@ import App from "./components/App.js";
 
 new Moon({
   el: "#app",
-  render: (c) => {
-    return c(App);
-  }
+  render: c => c(App)
 });

@@ -1,12 +1,13 @@
 declare type Vnode = {
   key?: string;
   tag?: string;
-  nodeType: number;
+  nodeType: number | string;
   attrs?: object;
   className?: string | object;
   on?: object;
   bind?: object;
   children?: Array<Vnode>;
+  text?: any;
 }
 
 declare type CreateVNode = {
@@ -22,21 +23,26 @@ declare type Configs = {
   autoRender?: Boolean;
 }
 
-declare type Components = {
-  $el: HTMLElement;
+declare type Vm = {
   name: string;
   props: object;
   methods: object;
   watch: object;
+  render: Render;
+  components: object;
   computed: object;
-  vNode: Vnode;
+  _vNode: Vnode;
+  data: Function;
+  created: Function;
+  mounted: Function;
+}
+
+declare interface Components extends Vm  {
+  $el: HTMLElement;
   $emit: Function;
   $on: Function;
   $nextTick: Function;
   $get: Function;
   $set: Function;
   $parent: Function;
-  data: Function;
-  created: Function;
-  mounted: Function;
 }

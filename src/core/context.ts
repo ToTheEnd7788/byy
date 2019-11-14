@@ -1,7 +1,14 @@
-export default class Context {
-  constructor() {}
+import { isObj, isStr, warn } from "../utils/index";
+import Component from "./component";
 
-  _createVNode(a, b, c, t) {
-    console.log(111111, a, this);
+class Context {
+  constructor() {
+    
+  }
+
+  _c(a: Vm) {
+    return new Component(a).vm;
   }
 };
+
+export default Context;

@@ -27,6 +27,17 @@ function __extends(d, b) {
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 }
 
+var __assign = function() {
+    __assign = Object.assign || function __assign(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+
 if (!Function.prototype.bind) {
     Function.prototype.bind = function (o) {
         if (typeof this !== 'function') {
@@ -136,13 +147,178 @@ if (typeof Object.assign !== 'function') {
 function warn(content) {
     console.error("Moon Error:\n" + content);
 }
+function isObj(value) {
+    return Object.prototype.toString.call(value) === "[object Object]";
+}
+function isStr(value) {
+    return Object.prototype.toString.call(value) === "[object String]";
+}
 //# sourceMappingURL=index.js.map
+
+var Component = (function () {
+    function Component(vm) {
+        this.vm = vm;
+        this.eventFilter = {
+            stop: function (e) {
+                if (e.stopPropagation)
+                    e.stopPropagation();
+                else
+                    e.cancelBubble = true;
+            },
+            prevent: function (e) {
+                if (e.preventDefault)
+                    e.preventDefault();
+                else
+                    e.returnValue = false;
+            }
+        };
+        this._createComponent();
+    }
+    Component.prototype._setEvents = function (el, event) {
+        var _this = this;
+        var _loop_1 = function (name) {
+            var _a = name.split('.'), n = _a[0], type = _a[1], _b = event[name], handler = _b[0], params = _b.slice(1);
+            el["on" + n] = null;
+            el["on" + n] = function (e) {
+                var evt = e || window.event;
+                if (type) {
+                    _this.eventFilter[type] && _this.eventFilter[type](evt);
+                }
+                params = params.reduce(function (acc, item) {
+                    if (item === '$event')
+                        acc.push(evt);
+                    else
+                        acc.push(item);
+                    return acc;
+                }, []);
+                handler.apply(_this.vm, params);
+            };
+        };
+        for (var name in event) {
+            _loop_1(name);
+        }
+    };
+    Component.prototype._setStyle = function (el, style) {
+        for (var key in style) {
+            el.style[key] = style[key];
+        }
+    };
+    Component.prototype._setAttributes = function (el, node) {
+        var _loop_2 = function (key) {
+            if (key === 'className') {
+                if (isObj(node[key])) {
+                    el[key] = Object.keys(node[key]).filter(function (item) {
+                        return node[key][item];
+                    }).join(" ");
+                }
+                else if (isStr(node[key])) {
+                    el[key] = node[key];
+                }
+                else {
+                    warn("The className must be string or object");
+                }
+            }
+            else if (key === 'on') {
+                this_1._setEvents(el, node[key]);
+            }
+            else if (key === 'style') {
+                this_1._setStyle(el, node[key]);
+            }
+            else if (key === 'attrs') {
+                for (var attr in node[key]) {
+                    el[attr] = node[key][attr];
+                }
+            }
+        };
+        var this_1 = this;
+        for (var key in node) {
+            _loop_2(key);
+        }
+    };
+    Component.prototype._createElement = function (node) {
+        var ele;
+        if (node.nodeType === 1) {
+            ele = document.createElement(node.tag);
+            this._setAttributes(ele, node);
+        }
+        else if (node.nodeType === 3) {
+            ele = document.createTextNode(node.text);
+        }
+        else if (node.nodeType === "component") {
+            ele = this.vm.components[node.tag].$el;
+        }
+        if (node.children && node.children.length > 0) {
+            for (var _i = 0, _a = node.children; _i < _a.length; _i++) {
+                var child = _a[_i];
+                ele.appendChild(this._createElement(child));
+            }
+        }
+        return ele;
+    };
+    Component.prototype.__transferMethods = function () {
+        this.vm = Object.assign(this.vm, __assign({}, this.vm.methods));
+    };
+    Component.prototype._createVnode = function (a, b, c) {
+        var children, result;
+        if (c && c.length > 0) {
+            children = c.reduce(function (acc, item) {
+                if (isObj(item)) {
+                    acc.push(item);
+                }
+                else {
+                    acc.push({
+                        nodeType: 3,
+                        text: item
+                    });
+                }
+                return acc;
+            }, []);
+        }
+        if (this.components && this.components[a]) {
+            this.components[a].$parent = this;
+            result = __assign(__assign({ tag: a }, b), { children: children, component: this.components[a], nodeType: "component" });
+        }
+        else {
+            result = __assign(__assign({ tag: a }, b), { children: children, nodeType: 1 });
+        }
+        return result;
+    };
+    Component.prototype._createChildrenComponent = function () {
+        var components = this.vm.components;
+        if (components && Object.keys(components).length > 0) {
+            Object.keys(components).reduce(function (acc, item) {
+                acc[item] = new Component(components[item]).vm;
+                return acc;
+            }, {});
+        }
+    };
+    Component.prototype._get = function (name) {
+        var data = this.data && this.data();
+        return data[name] || data[name] === false || data[name] === 0
+            ? data[name]
+            : (this.props && this.props[name]);
+    };
+    Component.prototype._createComponent = function () {
+        if (!this.vm.render) {
+            warn("The compoennt named [" + this.vm.name + "]'s render function is required");
+        }
+        else {
+            this.__transferMethods();
+            this.vm.created && this.vm.created();
+            this._createChildrenComponent();
+            this.vm.$get = this._get;
+            this.vm._vNode = this.vm.render(this._createVnode.bind(this.vm));
+            this.vm.$el = this._createElement(this.vm._vNode);
+        }
+    };
+    return Component;
+}());
 
 var Context = (function () {
     function Context() {
     }
-    Context.prototype._createVNode = function (a, b, c, t) {
-        console.log(111111, a, this);
+    Context.prototype._c = function (a) {
+        return new Component(a).vm;
     };
     return Context;
 }());
@@ -159,7 +335,7 @@ var Moon = (function (_super) {
         _this.el = el;
         _this.render = render;
         _this.autoRender = autoRender;
-        _this.vNode;
+        _this.children;
         _this.__init();
         return _this;
     }
@@ -172,10 +348,12 @@ var Moon = (function (_super) {
         }
         else {
             this._el = document.querySelector(this.el);
-            this.vNode = this.render(this._createVNode);
+            this.children = this.render(this._c.bind(this));
+            this._el.appendChild(this.children.$el);
         }
     };
     return Moon;
 }(Context));
+//# sourceMappingURL=index.js.map
 
 export default Moon;

@@ -10,7 +10,7 @@ class Moon extends Context {
   _el: HTMLElement;
   render: Render;
   autoRender?: boolean;
-  vNode: Vnode;
+  children: Components;
 
   constructor(config?: Configs) {
     super();
@@ -23,7 +23,7 @@ class Moon extends Context {
     this.el = el;
     this.render = render;
     this.autoRender = autoRender;
-    this.vNode;
+    this.children;
 
     this.__init();
   }
@@ -35,8 +35,10 @@ class Moon extends Context {
       warn(`The render function is required, please check`);
     } else {
       this._el = document.querySelector(this.el);
+      this.children = this.render(this._c.bind(this));
 
-      this.vNode = this.render(this._createVNode);
+
+      this._el.appendChild(this.children.$el);
     }
   }
 }
