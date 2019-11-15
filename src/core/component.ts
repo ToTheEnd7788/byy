@@ -1,5 +1,5 @@
-import Context from "./context";
 import { isObj, isStr, warn } from "../utils/index";
+import differ from "./differ";
 
 
 class Component {
@@ -89,7 +89,6 @@ class Component {
     } else if (node.nodeType === 3) {
       ele = document.createTextNode(node.text);
     } else if (node.nodeType === "component") {
-      console.log(333333, node, this.vm);
       ele = this.vm.components[node.tag].$el;
     }
 
@@ -129,13 +128,28 @@ class Component {
     if (this.components && this.components[a]) {
       this.components[a].$parent = this;
 
+      if (b.props && this.components[a].props) {
+        for (let key in this.components[a].props) {
+          if (b.props[key] || b.props[key] === false || b.props[key] === 0) {
+            this.components[a].props[key] = Object.assign(this.components[a].props[key], {
+              value: b.props[key]
+            })
+          }
+        }
+      }
+
+      if (b.bind) {
+        this._binds = Object.assign({}, this._binds, b.bind);
+      }
+
       result = {
         tag: a,
         ...b,
         children: children,
-        component: this.components[a],
         nodeType: "component"
       };
+
+      this.components[a] = new Component(this.components[a]).vm;
     } else {
       result = {
         tag: a,
@@ -148,41 +162,49 @@ class Component {
     return result
   }
 
-  _createChildrenComponent() {
-    let  { components } = this.vm;
-
-    if (components && Object.keys(components).length > 0) {
-      Object.keys(components).reduce((acc, item) => {
-        acc[item] = new Component(components[item]).vm;
-        return acc;
-      }, {});
-    }
-  }
-
   _get(name: string) {
-    let data = this.data && this.data();
-
-    return data[name] || data[name] === false || data[name] === 0
-      ? data[name]
-      : (this.props && this.props[name]);
+    return this.data[name] || this.data[name] === false || this.data[name] === 0
+      ? this.data[name]
+      : (this.props && this.props[name].value || this.props[name].initial);
   }
 
   _set(name: string, val: any) {
-    console.log(111111, this, name, val);
+    if (this.data[name] !== val) {
+      this.data[name] = val;
+      
+      clearTimeout(this._patchTimer);
+      this._patchTimer = setTimeout(() => {
+        let vNode = this.render(this._createVnode.bind(this));
+
+        differ(vNode, this._vNode, this);
+      }, 5)
+    }
+  }
+
+  _updateChildComponent() {
+
+  }
+
+  _emit(name: string, ...values: any[]) {
+    this.$parent._binds[name] && this.$parent._binds[name].apply(this, values);
   }
 
   _createComponent() {
     if (!this.vm.render) {
       warn(`The compoennt named [${this.vm.name}]'s render function is required`);
     } else {
+      this.vm._createVnode = this._createVnode;
+      this.$emit = this._emit;
+      this.vm._patchTimer = null;
       this.__transferMethods();
       this.vm.created && this.vm.created();
-      this._createChildrenComponent();
-
+      
       this.vm.$get = this._get;
       this.vm.$set = this._set;
       this.vm._vNode = this.vm.render(this._createVnode.bind(this.vm));
       this.vm.$el = this._createElement(this.vm._vNode);
+
+      console.log(33333, this.vm);
     }
   }
 };

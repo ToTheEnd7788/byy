@@ -1,10 +1,8 @@
 export default {
   name: "test-one",
 
-  data() {
-    return {
-      child: "test-one2"
-    };
+  data: {
+    child: "test-one2"
   },
 
   created() {
@@ -24,6 +22,6 @@ export default {
       attrs: {
         id: "test-byy"
       }
-    }, [this.$get("child")])
+    }, [this.$get("name")])
   }
 };

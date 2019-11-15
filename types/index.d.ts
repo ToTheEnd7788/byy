@@ -32,7 +32,7 @@ declare type Vm = {
   components: object;
   computed: object;
   _vNode: Vnode;
-  data: Function;
+  data: object;
   created: Function;
   mounted: Function;
 }

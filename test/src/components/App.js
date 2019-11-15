@@ -3,11 +3,9 @@ import TestOne from "./TestOne";
 export default {
   name: "app",
 
-  data() {
-    return {
-      msg: "Moon",
-      spanContent: "App-Page"
-    };
+  data: {
+    msg: "Moon",
+    spanContent: "App-Page"
   },
 
   components: {
@@ -23,14 +21,16 @@ export default {
       console.log("parent", e, data);
     },
     childClicked(a) {
-      console.log('child', a);
-      this.$set('msg', "moon");
+      this.$set('msg', a);
     }
   },
 
   render(c) {
     return c('div', {
-      className: "app",
+      className: {
+        "app": true,
+        "hide": true
+      },
       attrs: {
         placeholder: "byy"
       },
@@ -42,7 +42,7 @@ export default {
         "click": [this.test, "$event", 33]
       }
     }, [
-      this.$get('msg'),
+      this.$get('spanContent'),
       c('span', {
         className: "app-span",
         style: {
@@ -59,6 +59,9 @@ export default {
         c("test-one", {
           props: {
             name: this.$get('msg')
+          },
+          bind: {
+            "emitFromChild": this.test
           }
         })
       ])
