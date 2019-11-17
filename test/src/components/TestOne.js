@@ -7,6 +7,9 @@ export default {
 
   created() {
     // console.log("child-created", this);
+    setTimeout(() => {
+      this.$set('child', "byy")
+    },3000)
   },
 
   props: {
@@ -19,9 +22,9 @@ export default {
   render(c) {
     return c('div', {
       className: "test-one",
-      attrs: {
-        id: "test-byy"
-      }
-    }, [this.$get("name")])
+    }, [
+      this.$get("name"),
+      this.$get('child')
+    ])
   }
 };

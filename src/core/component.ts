@@ -1,13 +1,49 @@
 import { isObj, isStr, warn } from "../utils/index";
 import differ from "./differ";
+import { threadId } from "worker_threads";
 
 
 class Component {
-  vm: Components | any;
+  render: Render;
+  name: string;
+  props: object;
+  methods: object;
+  watch: object;
+  components: object;
+  _vNode: Vnode;
+  _patchTimer: any;
+  _binds: object;
+  _isMounted: boolean;
+  _tickersList: Array<Function>;
+  data: object;
+  created: Function;
+  mounted: Function;
+
+  $el: HTMLElement;
+  $parent: Component;
+
+
   eventFilter: object;
 
   constructor(vm: Vm) {
-    this.vm = vm;
+    this.name = vm.name;
+    this.props = vm.props;
+    this.methods = vm.methods;
+    this.watch = vm.watch;
+    this.render = vm.render;
+    this.components = vm.components;
+    this.data = vm.data;
+    this.created = vm.created;
+    this.mounted = vm.mounted;
+    
+    this._vNode;
+    this._binds;
+    this._tickersList = [];
+    this.$el;
+    this.$parent;
+    this._patchTimer = null;
+    this._isMounted = false;
+
 
     this.eventFilter = {
       stop: e => {
@@ -24,7 +60,7 @@ class Component {
     this._createComponent();
   }
 
-  _setEvents(el: HTMLElement, event: object): void {
+  __setEvents(el: HTMLElement, event: object): void {
     for (let name in event) {
       let [n, type] = name.split('.'),
         [handler, ...params] = event[name];
@@ -44,18 +80,18 @@ class Component {
           return acc;
         }, []);
 
-        handler.apply(this.vm, params);
+        handler.apply(this, params);
       }
     }
   }
 
-  _setStyle(el: HTMLElement, style: object) {
+  __setStyle(el: HTMLElement, style: object) {
     for (let key in style) {
       el.style[key] = style[key];
     }
   }
 
-  _setAttributes(el: HTMLElement, node: object) {
+  __setAttributes(el: HTMLElement, node: object) {
     for (let key in node) {
       if (key === 'className') {
         if (isObj(node[key])) {
@@ -68,9 +104,9 @@ class Component {
           warn(`The className must be string or object`);
         }
       } else if (key === 'on') {
-        this._setEvents(el, node[key]);
+        this.__setEvents(el, node[key]);
       } else if (key === 'style') {
-        this._setStyle(el, node[key]);
+        this.__setStyle(el, node[key]);
       } else if (key === 'attrs') {
         for (let attr in node[key]) {
           el[attr] = node[key][attr];
@@ -79,22 +115,26 @@ class Component {
     }
   }
 
-  _createElement(node: Vnode) {
+  _createElement(node) {
     let ele;
 
     if (node.nodeType === 1) {
       ele = document.createElement(node.tag);
 
-      this._setAttributes(ele, node);
+      this.__setAttributes(ele, node);
     } else if (node.nodeType === 3) {
       ele = document.createTextNode(node.text);
     } else if (node.nodeType === "component") {
-      ele = this.vm.components[node.tag].$el;
+      ele = this.components[node.tag].$el;
     }
 
     if (node.children && node.children.length > 0) {
       for (let child of node.children) {
-        ele.appendChild(this._createElement(child));
+        if (child.nodeType === "component") {
+          ele.appendChild(child.component.$el);
+        } else {
+          ele.appendChild(this._createElement(child));
+        }
       }
     }
 
@@ -102,12 +142,27 @@ class Component {
   }
 
   __transferMethods() {
-    this.vm = Object.assign(this.vm, {
-      ...this.vm.methods
+    Object.assign(this, {
+      ...this.methods
     });
   }
 
-  _createVnode(a: string, b?: object, c?: Array<Vnode>) {
+  __deepClone(obj) {
+    let result = {};
+    for (let key in obj) {
+      if (obj.hasOwnProperty(key)) {
+        if (typeof obj[key] === 'object' && !(obj[key] instanceof Component)) {
+          result[key] = this.__deepClone(obj[key]);
+        } else {
+          result[key] = obj[key];
+        }
+      }
+    }
+
+    return result;
+  }
+
+  _createVnode(a: string, b?: any, c?: Array<Vnode>) {
     let children,
       result;
 
@@ -127,13 +182,14 @@ class Component {
 
     if (this.components && this.components[a]) {
       this.components[a].$parent = this;
-
-      if (b.props && this.components[a].props) {
-        for (let key in this.components[a].props) {
+      let component: any = this.__deepClone(this.components[a]);
+      
+      if (b.props && component.props) {
+        for (let key in component.props) {
           if (b.props[key] || b.props[key] === false || b.props[key] === 0) {
-            this.components[a].props[key] = Object.assign(this.components[a].props[key], {
+            component.props[key] = Object.assign(component.props[key], {
               value: b.props[key]
-            })
+            });
           }
         }
       }
@@ -142,69 +198,89 @@ class Component {
         this._binds = Object.assign({}, this._binds, b.bind);
       }
 
+      if (!this._isMounted) {
+        component = new Component(component);
+      }
+
       result = {
         tag: a,
         ...b,
-        children: children,
+        children,
+        component,
         nodeType: "component"
       };
-
-      this.components[a] = new Component(this.components[a]).vm;
     } else {
       result = {
         tag: a,
         ...b,
-        children: children,
+        children,
         nodeType: 1
       };
     }
 
-    return result
+    return result;
   }
 
-  _get(name: string) {
+  $get(name: string) {
     return this.data[name] || this.data[name] === false || this.data[name] === 0
       ? this.data[name]
       : (this.props && this.props[name].value || this.props[name].initial);
   }
 
-  _set(name: string, val: any) {
+  __watchTrigger(name, val) {
+    this.watch && this.watch[name] && this.watch[name].call(this, val, this.data[name]);
+  }
+
+  $set(name: string, val: any) {
     if (this.data[name] !== val) {
+      this.__watchTrigger(name, val);
       this.data[name] = val;
       
       clearTimeout(this._patchTimer);
       this._patchTimer = setTimeout(() => {
+        if (!this._isMounted) this._isMounted = true;
         let vNode = this.render(this._createVnode.bind(this));
 
         differ(vNode, this._vNode, this);
-      }, 5)
+        this._vNode = vNode;
+
+        for (let ticker of this._tickersList) {
+          ticker.call(this);
+        }
+
+        this._tickersList = [];
+      }, 0);
     }
   }
 
-  _updateChildComponent() {
-
+  $nextTick(c: Function) {
+    this._tickersList.push(c);
   }
 
-  _emit(name: string, ...values: any[]) {
-    this.$parent._binds[name] && this.$parent._binds[name].apply(this, values);
+  _updateChildComponent(n, o) {
+    let freshComponent = new Component(n);
+    differ(freshComponent._vNode, o, this);
+
+    for (let ticker of this._tickersList) {
+      ticker.call(this);
+    }
+
+    this._tickersList = [];
+  }
+
+  $emit(name: string, ...values: any[]) {
+    this.$parent._binds[name] && this.$parent._binds[name].apply(this.$parent, values);
   }
 
   _createComponent() {
-    if (!this.vm.render) {
-      warn(`The compoennt named [${this.vm.name}]'s render function is required`);
+    if (!this.render) {
+      warn(`The component named [${this.name}]'s render function is required`);
     } else {
-      this.vm._createVnode = this._createVnode;
-      this.$emit = this._emit;
-      this.vm._patchTimer = null;
+      this._patchTimer = null;
       this.__transferMethods();
-      this.vm.created && this.vm.created();
-      
-      this.vm.$get = this._get;
-      this.vm.$set = this._set;
-      this.vm._vNode = this.vm.render(this._createVnode.bind(this.vm));
-      this.vm.$el = this._createElement(this.vm._vNode);
-
-      console.log(33333, this.vm);
+      this.created && this.created();
+      this._vNode = this.render(this._createVnode.bind(this));
+      this.$el = this._createElement(this._vNode);
     }
   }
 };

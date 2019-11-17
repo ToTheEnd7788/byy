@@ -1,7 +1,6 @@
 // / <reference path="../types/typings.d.ts">
 import "../utils/shim";
 import { warn } from "../utils/index";
-import Component from "./component";
 import Context from "./context";
 
 
@@ -10,7 +9,7 @@ class Moon extends Context {
   _el: HTMLElement;
   render: Render;
   autoRender?: boolean;
-  children: Components;
+  children: any;
 
   constructor(config?: Configs) {
     super();
@@ -36,9 +35,10 @@ class Moon extends Context {
     } else {
       this._el = document.querySelector(this.el);
       this.children = this.render(this._c.bind(this));
-
-
       this._el.appendChild(this.children.$el);
+
+      // mounted event trigger
+      this.children.mounted && this.children.mounted();
     }
   }
 }

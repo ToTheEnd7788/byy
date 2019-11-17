@@ -8,6 +8,7 @@ declare type Vnode = {
   bind?: object;
   children?: Array<Vnode>;
   text?: any;
+  component?: Components;
 }
 
 declare type CreateVNode = {
@@ -45,4 +46,5 @@ declare interface Components extends Vm  {
   $get: Function;
   $set: Function;
   $parent: Function;
+  __deepClone: Function;
 }
