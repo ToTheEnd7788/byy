@@ -8,6 +8,7 @@ export default {
     spanContent: "App-Page",
     color: "green",
     tagName: "span",
+    age: 12,
     list: [
       {
         name: "111",
@@ -63,10 +64,11 @@ export default {
 
       // this.$set('list', temp);
       // this.$set('color', "red");
-      this.$set('msg', "byyyyyyy");
+      // this.$set('msg', "byyyyyyy");
+      // this.$set('age', 666)
 
       this.$nextTick(() => {
-        console.log(4444444, this.$el);
+        // console.log(4444444, this.$el);
       });
     },
 
@@ -103,29 +105,30 @@ export default {
         }
       }, ["byy"]),
       ...this.renderList(c),
-      c(this.$get('tagName'), {
-        className: "app-span",
-        style: {
-          padding: "5px 10px",
-          background: this.$get("color"),
-          color: "white",
-          borderRadius: "8px",
-          display: "inline-block"
-        },
-        on: {
-          "click.stop": [this.childClicked, "byy"]
-        }
-      }, [
-        this.$get('msg')
-        // c("test-one", {
-        //   props: {
-        //     name: this.$get('msg')
-        //   },
-        //   bind: {
-        //     "emitFromChild": this.test
-        //   }
-        // })
-      ])
+      // c(this.$get('tagName'), {
+      //   className: "app-span",
+      //   style: {
+      //     padding: "5px 10px",
+      //     background: this.$get("color"),
+      //     color: "white",
+      //     borderRadius: "8px",
+      //     display: "inline-block"
+      //   },
+      //   on: {
+      //     "click.stop": [this.childClicked, "byy"]
+      //   }
+      // }, [
+      //   // this.$get('msg'),
+      //   // c("test-one", {
+      //   //   props: {
+      //   //     name: this.$get('msg'),
+      //   //     age: this.$get('age')
+      //   //   },
+      //   //   bind: {
+      //   //     "emitFromChild": this.test
+      //   //   }
+      //   // })
+      // ])
     ])
   }
 };

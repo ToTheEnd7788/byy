@@ -9,9 +9,9 @@ module.exports = {
     //   runtimeHelpers: true,
     // }),
     typescriptPlugin(),
-    terser({
-      ie8: true
-    }),
+    // terser({
+    //   ie8: true
+    // }),
   ],
   output: {
     file: "libs/index.js",

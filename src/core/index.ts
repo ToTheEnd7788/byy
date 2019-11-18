@@ -27,6 +27,18 @@ class Moon extends Context {
     this.__init();
   }
 
+  _mountedTrigger(children) {
+    for (let child of children) {
+      if (child.nodeType === 'component') {
+        child.component.mounted && child.component.mounted();
+      }
+
+      if (child.children) {
+        this._mountedTrigger(child.children);
+      }
+    }
+  }
+
   __init(): void {
     if (!this.el || !document.querySelector(this.el)) {
       warn(`Please set valid el value, then I can get correct mounted element`);
@@ -39,6 +51,10 @@ class Moon extends Context {
 
       // mounted event trigger
       this.children.mounted && this.children.mounted();
+
+      console.log(99999999, this.children);
+
+      this._mountedTrigger(this.children._vNode.children);
     }
   }
 }

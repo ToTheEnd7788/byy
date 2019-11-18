@@ -145,7 +145,7 @@ function addPatch(paches, vm, n, o) {
       } else if (key === 'add') {
         for (let i = 0; i < paches[pos][key].length; i++) {
           if ( paches[pos][key][i].nodeType === "component") {
-            let freshComponent = new Component(paches[pos][key][i].component);
+            let freshComponent = new Component(paches[pos][key][i].component, true);
             target.appendChild(freshComponent.$el);
           } else {
             target.appendChild(vm._createElement(paches[pos][key][i]));
@@ -161,7 +161,7 @@ function addPatch(paches, vm, n, o) {
         }
 
         if (targetVNode.nodeType === "component") {
-          targetVNode.component = new Component(targetVNode.component);
+          targetVNode.component = new Component(targetVNode.component, true);
           target.parentNode.replaceChild(targetVNode.component.$el, target);
         } else {
           target.parentNode.replaceChild(vm._createElement(targetVNode), target);
@@ -171,15 +171,19 @@ function addPatch(paches, vm, n, o) {
         target.nodeValue = paches[pos][key];
       } else if (key === 'props') {
         let childs = pos.split("-"),
-          targetOVNode = o,
-          targetNVNode = n
+          targetNVNode = n,
+          targetOVNode = o;
           
         for (let i = 1; i < childs.length; i++) {
-          targetOVNode = targetOVNode.children[childs[i]];
           targetNVNode = targetNVNode.children[childs[i]];
+          targetOVNode = targetOVNode.children[childs[i]];
         }
 
-        targetOVNode.component._updateChildComponent(targetNVNode.component, targetOVNode.component._vNode);
+        targetOVNode.component._updateChildComponent(
+          targetNVNode.component,
+          targetOVNode.component._vNode,
+          paches[pos][key]
+        );
 
       } else {
         if (key === 'style') {

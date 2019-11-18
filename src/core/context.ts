@@ -7,7 +7,7 @@ class Context {
   }
 
   _c(a: Vm) {
-    return new Component(a);
+    return new Component(a, false);
   }
 };
 
