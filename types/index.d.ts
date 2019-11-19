@@ -2,7 +2,6 @@ declare type Vnode = {
   key?: string;
   tag?: string;
   nodeType: number | string;
-  attrs?: object;
   className?: string | object;
   on?: object;
   bind?: object;

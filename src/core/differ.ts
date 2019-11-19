@@ -96,7 +96,7 @@ function diffCommonAttrs(
           });
         } else if (nodeType === "component") {
           m[deep] = Object.assign({}, m[deep], {
-            updateComponent: `这里是要被替换的component的 名字 key ${tag}`
+            updateComponent: `这里是要被替换的component的 名字 key ${tag}` 
           });
         }
       }

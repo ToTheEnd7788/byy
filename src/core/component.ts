@@ -1,6 +1,6 @@
 import { isObj, isStr, warn } from "../utils/index";
 import differ from "./differ";
-import { threadId } from "worker_threads";
+import VNode from "./vNode";
 
 
 class Component {
@@ -282,11 +282,10 @@ class Component {
       this._patchTimer = null;
       this.__transferMethods();
       this.created && this.created();
-      this._vNode = this.render(this._createVnode.bind(this, this._isMounted));
-      this.$el = this._createElement(this._vNode);
 
-      // if (!this._isMounted) {
-      // }
+      new VNode(this);
+      // this._vNode = this.render(this._createVnode.bind(this, this._isMounted));
+      // this.$el = this._createElement(this._vNode);
     }
   }
 };
