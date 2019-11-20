@@ -7,29 +7,54 @@ class VNode {
   on?: object;
   bind: object; 
   text?: any;
-  component?: Components;
+  _vm?: Components;
+  component?: any;
   children?: Array<VNode>;
 
-  constructor(component: any) {
+  constructor(vm: any) {
     this.tag;
     this.nodeType;
     this.className;
     this.on;
     this.bind;
     this.text;
-    this.component;
+    this._vm;
     this.children;
-    this.component = component;
+    this.component;
+    this._vm = vm;
 
     this._init();
+
+    console.log(3333333, this);
   }
 
   _init() {
-    this.component.render(this._create.bind(this.component));
+    this._vm.render(this._create.bind(this._vm, this));
   }
 
-  _create(a: string, b?: any, c?: Array<VNode>) {
-    console.log(333333333, a, b, c);
+  _create(ctx, a: string, b?: any, c?: Array<VNode>) {
+    let children,
+      res;
+
+    if (c && c.length > 0) {
+      children = c.reduce((acc, item, index) => {
+        if (isObj(item)) acc.push(item);
+        else acc.push({nodeType: 3, text: item})
+        return acc;
+      }, []);
+    }
+
+    ctx.tag = a;
+    ctx.children = children;
+
+    if (this.components && this.components[a]) {
+      ctx.nodeType = "component";
+      ctx.component = this.components[a];
+    } else {
+      ctx.nodeType = 1;
+    }
+
+
   }
 };
 

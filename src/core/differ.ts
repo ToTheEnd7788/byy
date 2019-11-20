@@ -117,6 +117,7 @@ function diffCommonAttrs(
 }
 
 function differ(n, o, vm) {
+  console.log(120, n, o)
   let paches = diffCommonAttrs(n, o, "0");
 
   if (Object.keys(paches).length > 0) {
@@ -145,7 +146,7 @@ function addPatch(paches, vm, n, o) {
       } else if (key === 'add') {
         for (let i = 0; i < paches[pos][key].length; i++) {
           if ( paches[pos][key][i].nodeType === "component") {
-            let freshComponent = new Component(paches[pos][key][i].component, true);
+            let freshComponent = new Component(paches[pos][key][i].component);
             target.appendChild(freshComponent.$el);
           } else {
             target.appendChild(vm._createElement(paches[pos][key][i]));
@@ -161,7 +162,7 @@ function addPatch(paches, vm, n, o) {
         }
 
         if (targetVNode.nodeType === "component") {
-          targetVNode.component = new Component(targetVNode.component, true);
+          targetVNode.component = new Component(targetVNode.component);
           target.parentNode.replaceChild(targetVNode.component.$el, target);
         } else {
           target.parentNode.replaceChild(vm._createElement(targetVNode), target);
@@ -178,7 +179,8 @@ function addPatch(paches, vm, n, o) {
           targetNVNode = targetNVNode.children[childs[i]];
           targetOVNode = targetOVNode.children[childs[i]];
         }
-
+        
+        console.log(3333333, targetOVNode);
         targetOVNode.component._updateChildComponent(
           targetNVNode.component,
           targetOVNode.component._vNode,

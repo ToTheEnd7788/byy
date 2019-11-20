@@ -272,6 +272,7 @@ function diffCommonAttrs(_a, _b, deep) {
     return m;
 }
 function differ(n, o, vm) {
+    console.log(120, n, o);
     var paches = diffCommonAttrs(n, o, "0");
     if (Object.keys(paches).length > 0) {
         addPatch(paches, vm, n, o);
@@ -296,7 +297,7 @@ function addPatch(paches, vm, n, o) {
             else if (key === 'add') {
                 for (var i = 0; i < paches[pos][key].length; i++) {
                     if (paches[pos][key][i].nodeType === "component") {
-                        var freshComponent = new Component(paches[pos][key][i].component, true);
+                        var freshComponent = new Component(paches[pos][key][i].component);
                         target.appendChild(freshComponent.$el);
                     }
                     else {
@@ -310,7 +311,7 @@ function addPatch(paches, vm, n, o) {
                     targetVNode = targetVNode.children[childs[i]];
                 }
                 if (targetVNode.nodeType === "component") {
-                    targetVNode.component = new Component(targetVNode.component, true);
+                    targetVNode.component = new Component(targetVNode.component);
                     target.parentNode.replaceChild(targetVNode.component.$el, target);
                 }
                 else {
@@ -326,6 +327,7 @@ function addPatch(paches, vm, n, o) {
                     targetNVNode = targetNVNode.children[childs[i]];
                     targetOVNode = targetOVNode.children[childs[i]];
                 }
+                console.log(3333333, targetOVNode);
                 targetOVNode.component._updateChildComponent(targetNVNode.component, targetOVNode.component._vNode, paches[pos][key]);
             }
             else {
@@ -355,10 +357,9 @@ function addPatch(paches, vm, n, o) {
         _loop_1(pos);
     }
 }
-//# sourceMappingURL=differ.js.map
 
 var Component = (function () {
-    function Component(vm, isMounted) {
+    function Component(vm) {
         this.name = vm.name;
         this.props = vm.props;
         this.methods = vm.methods;
@@ -374,7 +375,6 @@ var Component = (function () {
         this.$el;
         this.$parent;
         this._patchTimer = null;
-        this._isMounted = isMounted;
         this.eventFilter = {
             stop: function (e) {
                 if (e.stopPropagation)
@@ -462,12 +462,14 @@ var Component = (function () {
             ele = document.createTextNode(node.text);
         }
         else if (node.nodeType === "component") {
+            node.component = this.__buildChildComponent(node);
             ele = node.component.$el;
         }
         if (node.children && node.children.length > 0) {
             for (var _i = 0, _a = node.children; _i < _a.length; _i++) {
                 var child = _a[_i];
                 if (child.nodeType === "component") {
+                    child.component = this.__buildChildComponent(child);
                     ele.appendChild(child.component.$el);
                 }
                 else {
@@ -479,6 +481,27 @@ var Component = (function () {
     };
     Component.prototype.__transferMethods = function () {
         Object.assign(this, __assign({}, this.methods));
+    };
+    Component.prototype.__buildChildComponent = function (compt) {
+        if (this.components && this.components[compt.tag]) {
+            var component = this.components[compt.tag];
+            if (compt.props && component.props) {
+                for (var key in component.props) {
+                    if (compt.props[key] || compt.props[key] === false || compt.props[key] === 0) {
+                        component.props[key] = Object.assign(component.props[key], {
+                            value: compt.props[key]
+                        });
+                    }
+                }
+            }
+            if (compt.bind) {
+                this._binds = Object.assign({}, this._binds, compt.bind);
+            }
+            component = new Component(component);
+            component.$parent = this;
+            compt = component;
+        }
+        return compt;
     };
     Component.prototype.__deepClone = function (obj) {
         var result = {};
@@ -494,8 +517,8 @@ var Component = (function () {
         }
         return result;
     };
-    Component.prototype._createVnode = function (isMounted, a, b, c) {
-        var children, result;
+    Component.prototype._createVnode = function (a, b, c) {
+        var children, result, type = 1, component;
         if (c && c.length > 0) {
             children = c.reduce(function (acc, item) {
                 if (isObj(item)) {
@@ -511,27 +534,11 @@ var Component = (function () {
             }, []);
         }
         if (this.components && this.components[a]) {
-            var component = this.__deepClone(this.components[a]);
-            if (b && b.props && component.props) {
-                for (var key in component.props) {
-                    if (b.props[key] || b.props[key] === false || b.props[key] === 0) {
-                        component.props[key] = Object.assign(component.props[key], {
-                            value: b.props[key]
-                        });
-                    }
-                }
-            }
-            if (b && b.bind) {
-                this._binds = Object.assign({}, this._binds, b.bind);
-            }
-            component = new Component(component, isMounted);
-            component.$parent = this;
-            result = __assign(__assign({ tag: a }, b), { children: children,
-                component: component, _el: component.$el, nodeType: "component" });
+            type = "component";
+            component = this.components[a];
         }
-        else {
-            result = __assign(__assign({ tag: a }, b), { children: children, nodeType: 1 });
-        }
+        result = __assign(__assign({ tag: a }, b), { children: children,
+            component: component, nodeType: type });
         return result;
     };
     Component.prototype.$get = function (name) {
@@ -552,7 +559,7 @@ var Component = (function () {
             this.data[name] = val;
             clearTimeout(this._patchTimer);
             this._patchTimer = setTimeout(function () {
-                var vNode = _this.render(_this._createVnode.bind(_this, true));
+                var vNode = _this.render(_this._createVnode.bind(_this));
                 differ(vNode, _this._vNode, _this);
                 _this._vNode = vNode;
                 for (var _i = 0, _a = _this._tickersList; _i < _a.length; _i++) {
@@ -570,7 +577,14 @@ var Component = (function () {
         for (var key in props) {
             this.__watchTrigger(key, props[key]);
         }
-        differ(n._vNode, o, this);
+        for (var key in props) {
+            n.props[key] = Object.assign(n.props[key], {
+                value: props[key]
+            });
+        }
+        var vNode = new Component(n)._vNode;
+        differ(vNode, o, this);
+        this._vNode = vNode;
         for (var _i = 0, _a = this._tickersList; _i < _a.length; _i++) {
             var ticker = _a[_i];
             ticker.call(this);
@@ -592,7 +606,7 @@ var Component = (function () {
             this._patchTimer = null;
             this.__transferMethods();
             this.created && this.created();
-            this._vNode = this.render(this._createVnode.bind(this, this._isMounted));
+            this._vNode = this.render(this._createVnode.bind(this));
             this.$el = this._createElement(this._vNode);
         }
     };
@@ -604,7 +618,7 @@ var Context = (function () {
     function Context() {
     }
     Context.prototype._c = function (a) {
-        return new Component(a, false);
+        return new Component(a);
     };
     return Context;
 }());

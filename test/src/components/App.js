@@ -49,20 +49,20 @@ export default {
 
   methods: {
     test(e, data) {
-      console.log("parent", e, data);
+      // console.log("parent", e, data);
     },
 
-    childClicked(a) {
-      // let temp = this.$get('list').slice(0);
-      // temp.splice(2, 0, {
-      //   name: "77777777",
-      //   id: 7
-      // }, {
-      //   name: "88888888",
-      //   id: 8
-      // });
+    childClicked() {
+      let temp = this.$get('list').slice(0);
+      temp.splice(2, 0, {
+        name: "77777777",
+        id: 7
+      }, {
+        name: "88888888",
+        id: 8
+      });
 
-      // this.$set('list', temp);
+      this.$set('list', temp);
       // this.$set('color', "red");
       // this.$set('msg', "byyyyyyy");
       // this.$set('age', 666)
@@ -95,40 +95,26 @@ export default {
         padding: "40px"
       },
       on: {
-        "click": [this.test, "$event", 33]
+        // "click": [this.test, "$event", 33]
       }
     }, [
-      c('div', {
+      c('button', {
         className: this.$get('msg'),
+        on: {
+          "click.stop": [this.childClicked]
+        },
         style: {
-          color: this.$get('color')
+          color: "white",
+          width: "100px",
+          height: "40px",
+          display: "inline-block",
+          background: this.$get('color'),
+          borderRadius: "8px",
+          marginBottom: "20px",
+          fontSize: "20px"
         }
       }, ["byy"]),
       ...this.renderList(c),
-      // c(this.$get('tagName'), {
-      //   className: "app-span",
-      //   style: {
-      //     padding: "5px 10px",
-      //     background: this.$get("color"),
-      //     color: "white",
-      //     borderRadius: "8px",
-      //     display: "inline-block"
-      //   },
-      //   on: {
-      //     "click.stop": [this.childClicked, "byy"]
-      //   }
-      // }, [
-      //   // this.$get('msg'),
-      //   // c("test-one", {
-      //   //   props: {
-      //   //     name: this.$get('msg'),
-      //   //     age: this.$get('age')
-      //   //   },
-      //   //   bind: {
-      //   //     "emitFromChild": this.test
-      //   //   }
-      //   // })
-      // ])
     ])
   }
 };

@@ -14,7 +14,6 @@ class Component {
   _patchTimer: any;
   _binds: object;
   _tickersList: Array<Function>;
-  _isMounted: boolean;
   data: object;
   created: Function;
   mounted: Function;
@@ -25,7 +24,7 @@ class Component {
 
   eventFilter: object;
 
-  constructor(vm: Vm, isMounted: boolean) {
+  constructor(vm: Vm) {
     this.name = vm.name;
     this.props = vm.props;
     this.methods = vm.methods;
@@ -42,7 +41,6 @@ class Component {
     this.$el;
     this.$parent;
     this._patchTimer = null;
-    this._isMounted = isMounted;
 
     this.eventFilter = {
       stop: e => {
@@ -123,12 +121,14 @@ class Component {
     } else if (node.nodeType === 3) {
       ele = document.createTextNode(node.text);
     } else if (node.nodeType === "component") {
+      node.component = this.__buildChildComponent(node);
       ele = node.component.$el;
     }
-
+    
     if (node.children && node.children.length > 0) {
       for (let child of node.children) {
         if (child.nodeType === "component") {
+          child.component = this.__buildChildComponent(child);
           ele.appendChild(child.component.$el);
         } else {
           ele.appendChild(this._createElement(child));
@@ -143,6 +143,32 @@ class Component {
     Object.assign(this, {
       ...this.methods
     });
+  }
+
+  __buildChildComponent(compt) {
+    if (this.components && this.components[compt.tag]) {
+      let component: any = this.components[compt.tag];
+      if (compt.props && component.props) {
+        for (let key in component.props) {
+          if (compt.props[key] || compt.props[key] === false || compt.props[key] === 0) {
+            component.props[key] = Object.assign(component.props[key], {
+              value: compt.props[key]
+            });
+          }
+        }
+      }
+
+      if (compt.bind) {
+        this._binds = Object.assign({}, this._binds, compt.bind);
+      }
+
+        component = new Component(component);
+        component.$parent = this;
+
+        compt = component;
+    }
+
+    return compt;
   }
 
   __deepClone(obj) {
@@ -160,9 +186,11 @@ class Component {
     return result;
   }
 
-  _createVnode(isMounted, a: string, b?: any, c?: Array<Vnode>) {
+  _createVnode(a: string, b?: any, c?: Array<Vnode>) {
     let children,
-      result;
+      result,
+      type: number | string = 1,
+      component;
 
     if (c && c.length > 0) {
       children = c.reduce((acc, item) => {
@@ -177,43 +205,20 @@ class Component {
         return acc;
       }, []);
     }
-    
+
     if (this.components && this.components[a]) {
-      let component: any = this.__deepClone(this.components[a]);
-      if (b && b.props && component.props) {
-        for (let key in component.props) {
-          if (b.props[key] || b.props[key] === false || b.props[key] === 0) {
-            component.props[key] = Object.assign(component.props[key], {
-              value: b.props[key]
-            });
-          }
-        }
-      }
-
-      if (b && b.bind) {
-        this._binds = Object.assign({}, this._binds, b.bind);
-      }
-
-      component = new Component(component, isMounted);
-      
-      component.$parent = this;
-
+      type = "component";
+      component = this.components[a];
+    }
+    
+    
       result = {
         tag: a,
         ...b,
         children,
         component,
-        _el: component.$el,
-        nodeType: "component"
+        nodeType: type
       };
-    } else {
-      result = {
-        tag: a,
-        ...b,
-        children,
-        nodeType: 1
-      };
-    }
 
     return result;
   }
@@ -239,7 +244,7 @@ class Component {
       
       clearTimeout(this._patchTimer);
       this._patchTimer = setTimeout(() => {
-        let vNode = this.render(this._createVnode.bind(this, true));
+        let vNode = this.render(this._createVnode.bind(this));
 
         differ(vNode, this._vNode, this);
         this._vNode = vNode;
@@ -262,7 +267,17 @@ class Component {
       this.__watchTrigger(key, props[key]);
     }
 
-    differ(n._vNode, o, this);
+    // updateProps
+    for (let key in props) {
+      n.props[key] = Object.assign(n.props[key], {
+        value: props[key]
+      });
+    }
+
+    let vNode = new Component(n)._vNode;
+
+    differ(vNode, o, this);
+    this._vNode = vNode;
 
     for (let ticker of this._tickersList) {
       ticker.call(this);
@@ -282,10 +297,8 @@ class Component {
       this._patchTimer = null;
       this.__transferMethods();
       this.created && this.created();
-
-      new VNode(this);
-      // this._vNode = this.render(this._createVnode.bind(this, this._isMounted));
-      // this.$el = this._createElement(this._vNode);
+      this._vNode = this.render(this._createVnode.bind(this));
+      this.$el = this._createElement(this._vNode);
     }
   }
 };

@@ -18,11 +18,11 @@ export default {
 
   watch: {
     name(val, old) {
-      console.log(777777, val, old, this);
+      // console.log(777777, val, old, this);
     },
 
     age(val, old) {
-      console.log("age:", val, old, this);
+      // console.log("age:", val, old, this);
     }
   },
 
