@@ -117,8 +117,9 @@ function diffCommonAttrs(
 }
 
 function differ(n, o, vm) {
-  console.log(120, n, o)
   let paches = diffCommonAttrs(n, o, "0");
+
+  console.log(77777777, paches, vm.name);
 
   if (Object.keys(paches).length > 0) {
     addPatch(paches, vm, n, o);

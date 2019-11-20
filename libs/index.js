@@ -272,8 +272,8 @@ function diffCommonAttrs(_a, _b, deep) {
     return m;
 }
 function differ(n, o, vm) {
-    console.log(120, n, o);
     var paches = diffCommonAttrs(n, o, "0");
+    console.log(77777777, paches, vm.name);
     if (Object.keys(paches).length > 0) {
         addPatch(paches, vm, n, o);
     }
@@ -357,6 +357,7 @@ function addPatch(paches, vm, n, o) {
         _loop_1(pos);
     }
 }
+//# sourceMappingURL=differ.js.map
 
 var Component = (function () {
     function Component(vm) {
