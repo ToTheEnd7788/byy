@@ -54,13 +54,7 @@ export default {
 
     childClicked() {
       let temp = this.$get('list').slice(0);
-      temp.splice(2, 0, {
-        name: "77777777",
-        id: 7
-      }, {
-        name: "88888888",
-        id: 8
-      });
+      temp.splice(2, 1);
 
       this.$set('list', temp);
       // this.$set('color', "red");
@@ -74,10 +68,11 @@ export default {
 
     // 模拟渲染列表
     renderList(c) {
-      return this.$get('list').map(item => {
+      return this.$get('list').map((item, index) => {
         return c('test-one', {
           props: {
-            name: item.name
+            name: item.name,
+            age: index
           }
         });
       });

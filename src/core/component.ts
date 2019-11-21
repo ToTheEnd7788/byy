@@ -104,10 +104,8 @@ class Component {
         this.__setEvents(el, node[key]);
       } else if (key === 'style') {
         this.__setStyle(el, node[key]);
-      } else if (key === 'attrs') {
-        for (let attr in node[key]) {
-          el[attr] = node[key][attr];
-        }
+      } else {
+        el[key] = node[key];
       }
     }
   }
@@ -121,14 +119,16 @@ class Component {
     } else if (node.nodeType === 3) {
       ele = document.createTextNode(node.text);
     } else if (node.nodeType === "component") {
-      node.component = this.__buildChildComponent(node);
+      node.component = new Component(node);
+      node.component.$parent = this;
       ele = node.component.$el;
     }
     
     if (node.children && node.children.length > 0) {
       for (let child of node.children) {
         if (child.nodeType === "component") {
-          child.component = this.__buildChildComponent(child);
+          child.component = new Component(child.component);
+          child.component.$parent = this;
           ele.appendChild(child.component.$el);
         } else {
           ele.appendChild(this._createElement(child));
@@ -143,32 +143,6 @@ class Component {
     Object.assign(this, {
       ...this.methods
     });
-  }
-
-  __buildChildComponent(compt) {
-    if (this.components && this.components[compt.tag]) {
-      let component: any = this.components[compt.tag];
-      if (compt.props && component.props) {
-        for (let key in component.props) {
-          if (compt.props[key] || compt.props[key] === false || compt.props[key] === 0) {
-            component.props[key] = Object.assign(component.props[key], {
-              value: compt.props[key]
-            });
-          }
-        }
-      }
-
-      if (compt.bind) {
-        this._binds = Object.assign({}, this._binds, compt.bind);
-      }
-
-        component = new Component(component);
-        component.$parent = this;
-
-        compt = component;
-    }
-
-    return compt;
   }
 
   __deepClone(obj) {
@@ -187,10 +161,29 @@ class Component {
   }
 
   _createVnode(a: string, b?: any, c?: Array<Vnode>) {
-    let children,
-      result,
+    let component,
       type: number | string = 1,
-      component;
+      children;
+
+    if (this.components && this.components[a]) {
+      component = this.__deepClone(this.components[a]);
+
+      if (b && b.props && component.props) {
+        for (let key in component.props) {
+          if (b.props[key] || b.props[key] === false || b.props[key] === 0) {
+            component.props[key] = Object.assign(component.props[key], {
+              value: b.props[key]
+            });
+          }
+        }
+      }
+
+      if (b && b.bind) {
+        this._binds = Object.assign({}, this._binds, b.bind);
+      }
+
+      type = "component";
+    }
 
     if (c && c.length > 0) {
       children = c.reduce((acc, item) => {
@@ -206,27 +199,35 @@ class Component {
       }, []);
     }
 
-    if (this.components && this.components[a]) {
-      type = "component";
-      component = this.components[a];
-    }
-    
-    
-      result = {
-        tag: a,
-        ...b,
-        children,
-        component,
-        nodeType: type
-      };
-
-    return result;
+    return  {
+      tag: a,
+      children,
+      ...b,
+      component,
+      nodeType: type
+    };
   }
 
   $get(name: string) {
-    return this.data[name] || this.data[name] === false || this.data[name] === 0
-      ? this.data[name]
-      : (this.props && (this.props[name].value || this.props[name].initial));
+    let res;
+
+    if (this.data[name]) {
+      res = this.data[name] || this.data[name] === false || this.data[name] === 0
+        ? this.data[name]
+        : undefined;
+    } else {
+      res =
+        this.props &&
+        this.props[name]
+          ? (
+            this.props[name].value || this.props[name].value === 0 || this.props[name].value === false
+             ? this.props[name].value
+             : this.props[name].initial
+          )
+          : undefined;
+    }
+
+    return res;
   }
 
   __watchTrigger(name, val) {
@@ -244,7 +245,7 @@ class Component {
       
       clearTimeout(this._patchTimer);
       this._patchTimer = setTimeout(() => {
-        let vNode = this.render(this._createVnode.bind(this));
+        let vNode = new Component(this)._vNode;
 
         differ(vNode, this._vNode, this);
         this._vNode = vNode;
@@ -262,19 +263,15 @@ class Component {
     this._tickersList.push(c);
   }
 
-  _updateChildComponent(n, o, props) {
+  _updateChildComponent(el, n, o, props) {
+    this.$el = el;
+    this.$parent = n.$parent;
+
     for (let key in props) {
       this.__watchTrigger(key, props[key]);
     }
 
-    // updateProps
-    for (let key in props) {
-      n.props[key] = Object.assign(n.props[key], {
-        value: props[key]
-      });
-    }
-
-    let vNode = new Component(n)._vNode;
+    let vNode = n._vNode;
 
     differ(vNode, o, this);
     this._vNode = vNode;

@@ -43,6 +43,7 @@ export default {
       className: "test-one",
     }, [
       this.$get("name"),
+      this.$get("age")
       // c('div', {}, [
       //   this.$get('age')
       // ]), 

@@ -52,8 +52,6 @@ class Moon extends Context {
       // mounted event trigger
       this.children.mounted && this.children.mounted();
 
-      console.log(99999999, this.children);
-
       this._mountedTrigger(this.children._vNode.children);
     }
   }

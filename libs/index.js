@@ -179,11 +179,16 @@ function compareObjs(newObjs, oldObjs) {
             }
         }
         else {
-            for (var inner in newObjs[key]) {
-                if (newObjs[key][inner] !== oldObjs[key][inner]) {
-                    maps[key] = Object.assign({}, (maps && maps[key]), (_b = {},
-                        _b[inner] = newObjs[key][inner],
-                        _b));
+            if (key === 'className') {
+                maps[key] = newObjs[key];
+            }
+            else {
+                for (var inner in newObjs[key]) {
+                    if (newObjs[key][inner] !== oldObjs[key][inner]) {
+                        maps[key] = Object.assign({}, (maps && maps[key]), (_b = {},
+                            _b[inner] = newObjs[key][inner],
+                            _b));
+                    }
                 }
             }
         }
@@ -273,7 +278,6 @@ function diffCommonAttrs(_a, _b, deep) {
 }
 function differ(n, o, vm) {
     var paches = diffCommonAttrs(n, o, "0");
-    console.log(77777777, paches, vm.name);
     if (Object.keys(paches).length > 0) {
         addPatch(paches, vm, n, o);
     }
@@ -327,8 +331,7 @@ function addPatch(paches, vm, n, o) {
                     targetNVNode = targetNVNode.children[childs[i]];
                     targetOVNode = targetOVNode.children[childs[i]];
                 }
-                console.log(3333333, targetOVNode);
-                targetOVNode.component._updateChildComponent(targetNVNode.component, targetOVNode.component._vNode, paches[pos][key]);
+                targetOVNode.component._updateChildComponent(target, targetNVNode.component, targetOVNode.component._vNode, paches[pos][key]);
             }
             else {
                 if (key === 'style') {
@@ -337,9 +340,7 @@ function addPatch(paches, vm, n, o) {
                     }
                 }
                 else if (key === 'className') {
-                    if (isStr(paches[pos][key])) {
-                        target[key] = paches[pos][key];
-                    }
+                    if (isStr(paches[pos][key])) ;
                     else {
                         var classNames = Object.keys(paches[pos][key]).filter(function (item) {
                             return paches[pos][key][item];
@@ -442,10 +443,8 @@ var Component = (function () {
             else if (key === 'style') {
                 this_1.__setStyle(el, node[key]);
             }
-            else if (key === 'attrs') {
-                for (var attr in node[key]) {
-                    el[attr] = node[key][attr];
-                }
+            else {
+                el[key] = node[key];
             }
         };
         var this_1 = this;
@@ -463,14 +462,16 @@ var Component = (function () {
             ele = document.createTextNode(node.text);
         }
         else if (node.nodeType === "component") {
-            node.component = this.__buildChildComponent(node);
+            node.component = new Component(node);
+            node.component.$parent = this;
             ele = node.component.$el;
         }
         if (node.children && node.children.length > 0) {
             for (var _i = 0, _a = node.children; _i < _a.length; _i++) {
                 var child = _a[_i];
                 if (child.nodeType === "component") {
-                    child.component = this.__buildChildComponent(child);
+                    child.component = new Component(child.component);
+                    child.component.$parent = this;
                     ele.appendChild(child.component.$el);
                 }
                 else {
@@ -482,27 +483,6 @@ var Component = (function () {
     };
     Component.prototype.__transferMethods = function () {
         Object.assign(this, __assign({}, this.methods));
-    };
-    Component.prototype.__buildChildComponent = function (compt) {
-        if (this.components && this.components[compt.tag]) {
-            var component = this.components[compt.tag];
-            if (compt.props && component.props) {
-                for (var key in component.props) {
-                    if (compt.props[key] || compt.props[key] === false || compt.props[key] === 0) {
-                        component.props[key] = Object.assign(component.props[key], {
-                            value: compt.props[key]
-                        });
-                    }
-                }
-            }
-            if (compt.bind) {
-                this._binds = Object.assign({}, this._binds, compt.bind);
-            }
-            component = new Component(component);
-            component.$parent = this;
-            compt = component;
-        }
-        return compt;
     };
     Component.prototype.__deepClone = function (obj) {
         var result = {};
@@ -519,7 +499,23 @@ var Component = (function () {
         return result;
     };
     Component.prototype._createVnode = function (a, b, c) {
-        var children, result, type = 1, component;
+        var component, type = 1, children;
+        if (this.components && this.components[a]) {
+            component = this.__deepClone(this.components[a]);
+            if (b && b.props && component.props) {
+                for (var key in component.props) {
+                    if (b.props[key] || b.props[key] === false || b.props[key] === 0) {
+                        component.props[key] = Object.assign(component.props[key], {
+                            value: b.props[key]
+                        });
+                    }
+                }
+            }
+            if (b && b.bind) {
+                this._binds = Object.assign({}, this._binds, b.bind);
+            }
+            type = "component";
+        }
         if (c && c.length > 0) {
             children = c.reduce(function (acc, item) {
                 if (isObj(item)) {
@@ -534,18 +530,25 @@ var Component = (function () {
                 return acc;
             }, []);
         }
-        if (this.components && this.components[a]) {
-            type = "component";
-            component = this.components[a];
-        }
-        result = __assign(__assign({ tag: a }, b), { children: children,
-            component: component, nodeType: type });
-        return result;
+        return __assign(__assign({ tag: a, children: children }, b), { component: component, nodeType: type });
     };
     Component.prototype.$get = function (name) {
-        return this.data[name] || this.data[name] === false || this.data[name] === 0
-            ? this.data[name]
-            : (this.props && (this.props[name].value || this.props[name].initial));
+        var res;
+        if (this.data[name]) {
+            res = this.data[name] || this.data[name] === false || this.data[name] === 0
+                ? this.data[name]
+                : undefined;
+        }
+        else {
+            res =
+                this.props &&
+                    this.props[name]
+                    ? (this.props[name].value || this.props[name].value === 0 || this.props[name].value === false
+                        ? this.props[name].value
+                        : this.props[name].initial)
+                    : undefined;
+        }
+        return res;
     };
     Component.prototype.__watchTrigger = function (name, val) {
         var oldVal = this.data[name] || this.data[name] === false || this.data[name] === 0
@@ -560,7 +563,7 @@ var Component = (function () {
             this.data[name] = val;
             clearTimeout(this._patchTimer);
             this._patchTimer = setTimeout(function () {
-                var vNode = _this.render(_this._createVnode.bind(_this));
+                var vNode = new Component(_this)._vNode;
                 differ(vNode, _this._vNode, _this);
                 _this._vNode = vNode;
                 for (var _i = 0, _a = _this._tickersList; _i < _a.length; _i++) {
@@ -574,16 +577,13 @@ var Component = (function () {
     Component.prototype.$nextTick = function (c) {
         this._tickersList.push(c);
     };
-    Component.prototype._updateChildComponent = function (n, o, props) {
+    Component.prototype._updateChildComponent = function (el, n, o, props) {
+        this.$el = el;
+        this.$parent = n.$parent;
         for (var key in props) {
             this.__watchTrigger(key, props[key]);
         }
-        for (var key in props) {
-            n.props[key] = Object.assign(n.props[key], {
-                value: props[key]
-            });
-        }
-        var vNode = new Component(n)._vNode;
+        var vNode = n._vNode;
         differ(vNode, o, this);
         this._vNode = vNode;
         for (var _i = 0, _a = this._tickersList; _i < _a.length; _i++) {
@@ -663,12 +663,10 @@ var Moon = (function (_super) {
             this.children = this.render(this._c.bind(this));
             this._el.appendChild(this.children.$el);
             this.children.mounted && this.children.mounted();
-            console.log(99999999, this.children);
             this._mountedTrigger(this.children._vNode.children);
         }
     };
     return Moon;
 }(Context));
-//# sourceMappingURL=index.js.map
 
 export default Moon;

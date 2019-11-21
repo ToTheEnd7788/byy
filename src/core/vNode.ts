@@ -32,29 +32,21 @@ class VNode {
     this._vm.render(this._create.bind(this._vm, this));
   }
 
-  _create(ctx, a: string, b?: any, c?: Array<VNode>) {
-    let children,
-      res;
+  _create(ctx, a: string, b?: any) {
+      let res,
+      type: number | string = 1,
+      component,
+      text;
 
-    if (c && c.length > 0) {
-      children = c.reduce((acc, item, index) => {
-        if (isObj(item)) acc.push(item);
-        else acc.push({nodeType: 3, text: item})
-        return acc;
-      }, []);
+    if (ctx.components && ctx.components[a]) {
     }
 
-    ctx.tag = a;
-    ctx.children = children;
-
-    if (this.components && this.components[a]) {
-      ctx.nodeType = "component";
-      ctx.component = this.components[a];
-    } else {
-      ctx.nodeType = 1;
-    }
-
-
+    this.tag = a;
+    this.nodeType = type;
+    this.component = ctx.components[a];
+    this.on = b.on;
+    this.className = b.className;
+    this.text
   }
 };
 

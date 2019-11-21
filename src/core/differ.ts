@@ -12,11 +12,15 @@ function compareObjs(newObjs, oldObjs) {
         });
       }
     } else {
-      for (let inner in newObjs[key]) {
-        if (newObjs[key][inner] !== oldObjs[key][inner]) {
-          maps[key] = Object.assign({}, (maps && maps[key]), {
-            [inner]: newObjs[key][inner]
-          })
+      if (key === 'className') {
+        maps[key] = newObjs[key];
+      } else {
+        for (let inner in newObjs[key]) {
+          if (newObjs[key][inner] !== oldObjs[key][inner]) {
+            maps[key] = Object.assign({}, (maps && maps[key]), {
+              [inner]: newObjs[key][inner]
+            })
+          }
         }
       }
     }
@@ -119,8 +123,6 @@ function diffCommonAttrs(
 function differ(n, o, vm) {
   let paches = diffCommonAttrs(n, o, "0");
 
-  console.log(77777777, paches, vm.name);
-
   if (Object.keys(paches).length > 0) {
     addPatch(paches, vm, n, o);
   }
@@ -153,7 +155,6 @@ function addPatch(paches, vm, n, o) {
             target.appendChild(vm._createElement(paches[pos][key][i]));
           }
         }
-
       } else if (key === 'freshEle') {
         let childs = paches[pos][key].split('-'),
           targetVNode = n;
@@ -180,9 +181,9 @@ function addPatch(paches, vm, n, o) {
           targetNVNode = targetNVNode.children[childs[i]];
           targetOVNode = targetOVNode.children[childs[i]];
         }
-        
-        console.log(3333333, targetOVNode);
+
         targetOVNode.component._updateChildComponent(
+          target,
           targetNVNode.component,
           targetOVNode.component._vNode,
           paches[pos][key]
@@ -195,7 +196,6 @@ function addPatch(paches, vm, n, o) {
           }
         } else if (key === 'className') {
           if (isStr(paches[pos][key])) {
-            target[key] = paches[pos][key];
           } else {
             let classNames = Object.keys(paches[pos][key]).filter(item => {
               return paches[pos][key][item];
