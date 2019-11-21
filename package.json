@@ -1,6 +1,6 @@
 {
   "name": "moon",
-  "version": "1.0.0-beta",
+  "version": "1.0.0",
   "description": "A Compatible Mvvm Structure",
   "main": "index.js",
   "repository": "https://github.com/ToTheEnd0314/moon",
