@@ -84,7 +84,8 @@ class Component {
 
   __setStyle(el: HTMLElement, style: object) {
     for (let key in style) {
-      el.style[key] = style[key];
+      if (el.style.setAttribute) el.style.setAttribute(key, style[key]);
+      else el.style[key] = style[key];
     }
   }
 
@@ -104,7 +105,7 @@ class Component {
         this.__setEvents(el, node[key]);
       } else if (key === 'style') {
         this.__setStyle(el, node[key]);
-      } else {
+      } else if (key !== 'nodeType' && key !== 'children' && key !== "tag") {
         el[key] = node[key];
       }
     }

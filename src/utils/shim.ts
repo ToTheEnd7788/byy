@@ -128,3 +128,86 @@ if (typeof Object.assign !== 'function') {
     return to;
   }
 }
+
+if (!Array.prototype.reduce) {
+  Array.prototype.reduce = function(callback) {
+    if (this === null) {
+      throw new TypeError( 'Array.prototype.reduce ' + 
+        'called on null or undefined' );
+    }
+    if (typeof callback !== 'function') {
+      throw new TypeError( callback +
+        ' is not a function');
+    }
+
+    var o = Object(this);
+
+    var len = o.length >>> 0; 
+
+    var k = 0; 
+    var value;
+
+    if (arguments.length >= 2) {
+      value = arguments[1];
+    } else {
+      while (k < len && !(k in o)) {
+        k++; 
+      }
+
+      if (k >= len) {
+        throw new TypeError( 'Reduce of empty array ' +
+          'with no initial value' );
+      }
+      value = o[k++];
+    }
+
+    while (k < len) {
+      if (k in o) {
+        value = callback(value, o[k], k, o);
+      }
+
+      k++;
+    }
+
+    return value;
+  }
+}
+
+if (!Array.prototype.indexOf) {
+  Array.prototype.indexOf = function(searchElement, fromIndex) {
+
+    var k;
+
+    if (this == null) {
+      throw new TypeError('"this" is null or not defined');
+    }
+
+    var O = Object(this);
+
+    var len = O.length >>> 0;
+
+    if (len === 0) {
+      return -1;
+    }
+
+    var n = +fromIndex || 0;
+
+    if (Math.abs(n) === Infinity) {
+      n = 0;
+    }
+
+    if (n >= len) {
+      return -1;
+    }
+
+    k = Math.max(n >= 0 ? n : len - Math.abs(n), 0);
+
+    while (k < len) {
+      if (k in O && O[k] === searchElement) {
+        return k;
+      }
+      k++;
+    }
+    return -1;
+  };
+}

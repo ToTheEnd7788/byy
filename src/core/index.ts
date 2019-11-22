@@ -7,6 +7,7 @@ import Context from "./context";
 class Moon extends Context {
   el: string;
   _el: HTMLElement;
+  _autoMode: boolean;
   render: Render;
   autoRender?: boolean;
   children: any;
@@ -14,13 +15,14 @@ class Moon extends Context {
   constructor(config?: Configs) {
     super();
 
-    let { el, autoRender, render } = Object.assign({
+    let { el, autoRender, render, autoMode } = Object.assign({
       el: "#app",
       autoRender: true
     }, config);
 
     this.el = el;
     this.render = render;
+    this._autoMode = autoMode;
     this.autoRender = autoRender;
     this.children;
 
@@ -39,20 +41,25 @@ class Moon extends Context {
     }
   }
 
+  $mount() {
+    this._el = document.querySelector(this.el);
+    this._el.appendChild(this.children.$el);
+    // mounted event trigger
+    this.children.mounted && this.children.mounted();
+    this._mountedTrigger(this.children._vNode.children);
+  }
+
   __init(): void {
     if (!this.el || !document.querySelector(this.el)) {
       warn(`Please set valid el value, then I can get correct mounted element`);
     } else if (!this.render) {
       warn(`The render function is required, please check`);
     } else {
-      this._el = document.querySelector(this.el);
       this.children = this.render(this._c.bind(this));
-      this._el.appendChild(this.children.$el);
 
-      // mounted event trigger
-      this.children.mounted && this.children.mounted();
-
-      this._mountedTrigger(this.children._vNode.children);
+      if (this._autoMode) {
+        this.$mount();
+      }
     }
   }
 }
