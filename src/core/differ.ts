@@ -3,7 +3,7 @@ import Component from "./component";
 
 function compareObjs(newObjs, oldObjs) {
   let maps: any = {};
-
+  
   for (let key in newObjs) {
     if (isStr(newObjs[key])) {
       if (newObjs[key] !== oldObjs[key]) {
@@ -185,7 +185,7 @@ function addPatch(paches, vm, n, o) {
         targetOVNode.component._updateChildComponent(
           target,
           targetNVNode.component,
-          targetOVNode.component._vNode,
+          targetOVNode.component,
           paches[pos][key]
         );
 
@@ -196,6 +196,7 @@ function addPatch(paches, vm, n, o) {
           }
         } else if (key === 'className') {
           if (isStr(paches[pos][key])) {
+            target[key] = paches[pos][key];
           } else {
             let classNames = Object.keys(paches[pos][key]).filter(item => {
               return paches[pos][key][item];
@@ -203,6 +204,8 @@ function addPatch(paches, vm, n, o) {
 
             target[key] = classNames.join(" ");
           }
+        } else {
+          target[key] = paches[pos][key];
         }
       }
     }

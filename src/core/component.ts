@@ -105,7 +105,7 @@ class Component {
         this.__setEvents(el, node[key]);
       } else if (key === 'style') {
         this.__setStyle(el, node[key]);
-      } else if (key !== 'nodeType' && key !== 'children' && key !== "tag") {
+      } else if (key !== 'component' && key !== 'nodeType' && key !== 'children' && key !== "tag") {
         el[key] = node[key];
       }
     }
@@ -120,16 +120,12 @@ class Component {
     } else if (node.nodeType === 3) {
       ele = document.createTextNode(node.text);
     } else if (node.nodeType === "component") {
-      node.component = new Component(node);
-      node.component.$parent = this;
       ele = node.component.$el;
     }
     
     if (node.children && node.children.length > 0) {
       for (let child of node.children) {
         if (child.nodeType === "component") {
-          child.component = new Component(child.component);
-          child.component.$parent = this;
           ele.appendChild(child.component.$el);
         } else {
           ele.appendChild(this._createElement(child));
@@ -183,6 +179,9 @@ class Component {
         this._binds = Object.assign({}, this._binds, b.bind);
       }
 
+      component = new Component(component);
+      component.$parent = this;
+
       type = "component";
     }
 
@@ -213,17 +212,30 @@ class Component {
     let res;
 
     if (this.data[name]) {
-      res = this.data[name] || this.data[name] === false || this.data[name] === 0
-        ? this.data[name]
-        : undefined;
+      res = this.data[name] ||
+        this.data[name] === false ||
+        this.data[name] === 0 ||
+        this.data[name] === ""
+          ? this.data[name]
+          : undefined;
     } else {
       res =
         this.props &&
         this.props[name]
           ? (
-            this.props[name].value || this.props[name].value === 0 || this.props[name].value === false
-             ? this.props[name].value
-             : this.props[name].initial
+            this.props[name].value ||
+            this.props[name].value === "" ||
+            this.props[name].value === 0 ||
+            this.props[name].value === false
+              ? this.props[name].value
+              : (
+                  this.props[name].initial ||
+                  this.props[name].initial === "" ||
+                  this.props[name].initial === 0 ||
+                  this.props[name].initial === false
+                    ? this.props[name].initial
+                    : undefined
+                )
           )
           : undefined;
     }
@@ -232,9 +244,7 @@ class Component {
   }
 
   __watchTrigger(name, val) {
-    let oldVal = this.data[name] || this.data[name] === false || this.data[name] === 0
-      ? this.data[name]
-      : (this.props && this.props[name].value || this.props[name].initial);
+    let oldVal = this.$get(name);
 
     this.watch && this.watch[name] && this.watch[name].call(this, val, oldVal);
   }
@@ -266,15 +276,13 @@ class Component {
 
   _updateChildComponent(el, n, o, props) {
     this.$el = el;
-    this.$parent = n.$parent;
-
     for (let key in props) {
       this.__watchTrigger(key, props[key]);
     }
 
     let vNode = n._vNode;
 
-    differ(vNode, o, this);
+    differ(vNode, o._vNode, this);
     this._vNode = vNode;
 
     for (let ticker of this._tickersList) {
