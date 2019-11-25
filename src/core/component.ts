@@ -20,6 +20,7 @@ class Component {
 
   $el: HTMLElement;
   $parent: Component;
+  $xhr: object;
 
 
   eventFilter: object;
@@ -211,7 +212,12 @@ class Component {
   $get(name: string) {
     let res;
 
-    if (this.data[name]) {
+    if (
+      this.data[name] ||
+      this.data[name] === 0 ||
+      this.data[name] === false ||
+      this.data[name] === ""
+    ) {
       res = this.data[name] ||
         this.data[name] === false ||
         this.data[name] === 0 ||
@@ -272,6 +278,78 @@ class Component {
 
   $nextTick(c: Function) {
     this._tickersList.push(c);
+  }
+
+  $fetch(root: string = "", time: boolean = true): object {
+    console.log(44444444444, root);
+    let isXdr = window.XDomainRequest
+      ? true
+      : false,
+      xhr = isXdr
+        ? new XDomainRequest()
+        : new XMLHttpRequest() || new ActiveXObject("Microsoft.XMLHTTP"),
+
+        loadedHandler = (ok, err) => {
+          if (isXdr) ok(JSON.parse(xhr.responseText));
+          else {
+            if (xhr.readyState === 4) {
+              if (xhr.status === 200 || xhr.status === 304) {
+                ok(JSON.parse(xhr.responseText));
+              } else {
+                err && err(xhr);
+              }    
+            }
+          }
+        }
+
+    return {
+      get: (url, data, okHandler, errHandler) => {
+        let serializer = (data) => {
+          var result = "?";
+      
+          for (var key in data) {
+            result += key + '=' + data[key] + '&';
+          }
+      
+          return result.replace(/&$/, '');
+        }
+
+        url = `${root}/${url}${serializer(data)}`;
+
+        if (time) url += `&t=${new Date().getTime()}`;
+
+        xhr.open("get", url);
+        xhr.send(null);
+
+        xhr.onload = loadedHandler.bind(null, okHandler, errHandler)
+
+        xhr.onerror = () => {
+          errHandler && errHandler(xhr);
+        };
+      },
+
+      post: (url, data, okHandler, errHandler) => {
+        console.log(222222, root);
+        if (data._queries && Object.keys(data._queries).length > 0) {
+          url += "?"
+          for (let key in data._queries) {
+            url += `${key}=${data._queries[key]}&`
+          }
+          url = url.slice(0, -1);
+        }
+
+        delete data["_queries"];
+
+        xhr.open("post", `${root}/${url}`);
+        xhr.send(JSON.stringify(data));
+
+        xhr.onload = loadedHandler.bind(null, okHandler, errHandler);
+    
+        xhr.onerror = () => {
+          errHandler && errHandler(xhr);
+        };
+      }
+    };
   }
 
   _updateChildComponent(el, n, o, props) {
