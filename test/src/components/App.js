@@ -1,4 +1,5 @@
 import TestOne from "./TestOne";
+import { collapseTextChangeRangesAcrossMultipleVersions } from "typescript";
 
 export default {
   name: "app",
@@ -53,17 +54,17 @@ export default {
     },
 
     childClicked() {
-      let temp = this.$get('list').slice(0);
-      temp.splice(2, 1);
+      this.$fetch.post("/api", {name: 123}, (res) => {
+        console.log("res-success", res);
 
-      this.$set('list', temp);
-      // this.$set('color', "red");
-      // this.$set('msg', "byyyyyyy");
-      // this.$set('age', 666)
-
-      this.$nextTick(() => {
-        // console.log(4444444, this.$el);
-      });
+        this.$fetch.get("/apis/aaa", {age: 22}, response => {
+          console.log("apis-sucess", response);
+        }, error => {
+          console.log("apis-error", error);
+        })
+      }, (err) => {
+        console.log("res-error", err);
+      })
     },
 
     // 模拟渲染列表

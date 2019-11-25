@@ -445,6 +445,7 @@ var Component = (function () {
         this._tickersList = [];
         this.$el;
         this.$parent;
+        this.$fetch = this.__createFetch();
         this._patchTimer = null;
         this.eventFilter = {
             stop: function (e) {
@@ -659,10 +660,7 @@ var Component = (function () {
     Component.prototype.$nextTick = function (c) {
         this._tickersList.push(c);
     };
-    Component.prototype.$fetch = function (root, time) {
-        if (root === void 0) { root = ""; }
-        if (time === void 0) { time = true; }
-        console.log(44444444444, root);
+    Component.prototype.__createFetch = function () {
         var isXdr = window.XDomainRequest
             ? true
             : false, xhr = isXdr
@@ -690,9 +688,7 @@ var Component = (function () {
                     }
                     return result.replace(/&$/, '');
                 };
-                url = root + "/" + url + serializer(data);
-                if (time)
-                    url += "&t=" + new Date().getTime();
+                url = "" + url + serializer(data) + "&t=" + new Date().getTime();
                 xhr.open("get", url);
                 xhr.send(null);
                 xhr.onload = loadedHandler.bind(null, okHandler, errHandler);
@@ -701,7 +697,6 @@ var Component = (function () {
                 };
             },
             post: function (url, data, okHandler, errHandler) {
-                console.log(222222, root);
                 if (data._queries && Object.keys(data._queries).length > 0) {
                     url += "?";
                     for (var key in data._queries) {
@@ -710,7 +705,7 @@ var Component = (function () {
                     url = url.slice(0, -1);
                 }
                 delete data["_queries"];
-                xhr.open("post", root + "/" + url);
+                xhr.open("post", "" + url);
                 xhr.send(JSON.stringify(data));
                 xhr.onload = loadedHandler.bind(null, okHandler, errHandler);
                 xhr.onerror = function () {
@@ -754,7 +749,6 @@ var Component = (function () {
     };
     return Component;
 }());
-//# sourceMappingURL=component.js.map
 
 var Context = (function () {
     function Context() {
@@ -772,7 +766,7 @@ var Moon = (function (_super) {
         var _this = _super.call(this) || this;
         var _a = Object.assign({
             el: "#app",
-            autoRender: true
+            autoMode: true
         }, config), el = _a.el, autoRender = _a.autoRender, render = _a.render, autoMode = _a.autoMode;
         _this.el = el;
         _this.render = render;

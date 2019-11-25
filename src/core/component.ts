@@ -20,7 +20,7 @@ class Component {
 
   $el: HTMLElement;
   $parent: Component;
-  $xhr: object;
+  $fetch: object;
 
 
   eventFilter: object;
@@ -41,6 +41,7 @@ class Component {
     this._tickersList = [];
     this.$el;
     this.$parent;
+    this.$fetch = this.__createFetch()
     this._patchTimer = null;
 
     this.eventFilter = {
@@ -280,8 +281,7 @@ class Component {
     this._tickersList.push(c);
   }
 
-  $fetch(root: string = "", time: boolean = true): object {
-    console.log(44444444444, root);
+  __createFetch() {
     let isXdr = window.XDomainRequest
       ? true
       : false,
@@ -314,9 +314,7 @@ class Component {
           return result.replace(/&$/, '');
         }
 
-        url = `${root}/${url}${serializer(data)}`;
-
-        if (time) url += `&t=${new Date().getTime()}`;
+        url = `${url}${serializer(data)}&t=${new Date().getTime()}`;
 
         xhr.open("get", url);
         xhr.send(null);
@@ -329,7 +327,6 @@ class Component {
       },
 
       post: (url, data, okHandler, errHandler) => {
-        console.log(222222, root);
         if (data._queries && Object.keys(data._queries).length > 0) {
           url += "?"
           for (let key in data._queries) {
@@ -340,7 +337,7 @@ class Component {
 
         delete data["_queries"];
 
-        xhr.open("post", `${root}/${url}`);
+        xhr.open("post", `${url}`);
         xhr.send(JSON.stringify(data));
 
         xhr.onload = loadedHandler.bind(null, okHandler, errHandler);

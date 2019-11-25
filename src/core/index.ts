@@ -17,7 +17,7 @@ class Moon extends Context {
 
     let { el, autoRender, render, autoMode } = Object.assign({
       el: "#app",
-      autoRender: true
+      autoMode: true
     }, config);
 
     this.el = el;

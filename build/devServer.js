@@ -33,6 +33,22 @@ app.get("/", (req, res) => {
   });
 });
 
+app.post("/api", (req, res) => {
+  res.json({
+    Code: 0,
+    Msg: "ok",
+    Data: [1, 2, 3]
+  });
+})
+
+app.get("/apis/aaa", (req, res) => {
+  res.json({
+    Code: 0,
+    Msg: "Ok",
+    Data: ["aaa", "aaa1"]
+  });
+})
+
 app.use(webpackDevMiddleWare(compiler, {
   publicPath: webpackConfig.output.publicPath,
   colors: true

@@ -12,7 +12,7 @@ export default {
   context: testRoot,
   mode: "development",
   entry: {
-    index: ["@babel/polyfill", "./src/index.js"]
+    index: ["./src/index.js"]
   },
   output: {
     path: distRoot,
