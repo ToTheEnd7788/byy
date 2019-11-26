@@ -1,65 +1,43 @@
-// / <reference path="../types/typings.d.ts">
-import "../utils/shim";
-import { warn } from "../utils/index";
-import Context from "./context";
+import { warn, isObj } from "../utils/index";
+import Component from "./component";
 
+class Moon {
+  $options: any;
+  _vm: any;
 
-class Moon extends Context {
-  el: string;
-  _el: HTMLElement;
-  _autoMode: boolean;
-  render: Render;
-  autoRender?: boolean;
-  children: any;
+  constructor(options: object) {
+    this.$options = Object.assign({
+      el: "app",
+      $el: null,
+      render: null,
+      autoRender: true
+    }, options);
 
-  constructor(config?: Configs) {
-    super();
+    this._vm;
 
-    let { el, autoRender, render, autoMode } = Object.assign({
-      el: "#app",
-      autoMode: true
-    }, config);
-
-    this.el = el;
-    this.render = render;
-    this._autoMode = autoMode;
-    this.autoRender = autoRender;
-    this.children;
-
-    this.__init();
-  }
-
-  _mountedTrigger(children) {
-    for (let child of children) {
-      if (child.nodeType === 'component') {
-        child.component.mounted && child.component.mounted();
-      }
-
-      if (child.children) {
-        this._mountedTrigger(child.children);
-      }
+    if (!this.$options.name) {
+      this._init("byy");
     }
   }
 
-  $mount() {
-    this._el = document.querySelector(this.el);
-    this._el.appendChild(this.children.$el);
-    // mounted event trigger
-    this.children.mounted && this.children.mounted();
-    this._mountedTrigger(this.children._vNode.children);
+  _init(pass) {
+    if (pass === "byy") {
+      this.$options.render(this._render.bind(this, "byy"));
+    } else {
+      warn(`The function named [_init] is a inner function, you can't call it directly`);
+    }
   }
 
-  __init(): void {
-    if (!this.el || !document.querySelector(this.el)) {
-      warn(`Please set valid el value, then I can get correct mounted element`);
-    } else if (!this.render) {
-      warn(`The render function is required, please check`);
-    } else {
-      this.children = this.render(this._c.bind(this));
-
-      if (this._autoMode) {
-        this.$mount();
+  _render(pass, component) {
+    if (pass === "byy") {
+      if (isObj(component)) {
+        this.$options.$el = document.querySelector(this.$options.el || this.$options.el);
+        this._vm = new Component(component, this.$options);
+      } else {
+        warn(`You must init Moon with a component`);
       }
+    } else {
+      warn(`The function named [_render] is a inner function, you can't call it directly`);
     }
   }
 }

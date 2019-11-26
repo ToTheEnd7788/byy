@@ -40,7 +40,14 @@
   "dependencies": {},
   "babel": {
     "presets": [
-      ["@babel/preset-env", {"targets": {"ie": "8"}, "useBuiltIns": "usage"}]
+      [
+        "@babel/preset-env",
+        {
+          "targets": {
+            "ie": "8"
+          }
+        }
+      ]
     ],
     "plugins": [
       "@babel/plugin-syntax-dynamic-import",
