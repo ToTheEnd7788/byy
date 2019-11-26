@@ -65,9 +65,19 @@ function diffChildren(n, o, deep) {
         remove: o.length - n.length
       });
     }
-
-    return m;
+  } else {
+    if (n && !o) {
+      m[deep] = Object.assign({}, m[deep], {
+        add: n
+      });
+    } else if (o && !n) {
+      m[deep] = Object.assign({}, m[deep], {
+        remove: o.length
+      });
+    }
   }
+
+  return m;
 }
 
 function diffCommonAttrs(

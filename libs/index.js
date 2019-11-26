@@ -294,8 +294,20 @@ function diffChildren(n, o, deep) {
                 remove: o.length - n.length
             });
         }
-        return m;
     }
+    else {
+        if (n && !o) {
+            m[deep] = Object.assign({}, m[deep], {
+                add: n
+            });
+        }
+        else if (o && !n) {
+            m[deep] = Object.assign({}, m[deep], {
+                remove: o.length
+            });
+        }
+    }
+    return m;
 }
 function diffCommonAttrs(_a, _b, deep) {
     var on = _a.on, bind = _a.bind, children = _a.children, nodeType = _a.nodeType, tag = _a.tag, text = _a.text, newObjs = __rest(_a, ["on", "bind", "children", "nodeType", "tag", "text"]);
@@ -749,6 +761,7 @@ var Component = (function () {
     };
     return Component;
 }());
+//# sourceMappingURL=component.js.map
 
 var Context = (function () {
     function Context() {

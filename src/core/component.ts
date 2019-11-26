@@ -264,7 +264,6 @@ class Component {
       clearTimeout(this._patchTimer);
       this._patchTimer = setTimeout(() => {
         let vNode = new Component(this)._vNode;
-
         differ(vNode, this._vNode, this);
         this._vNode = vNode;
 
