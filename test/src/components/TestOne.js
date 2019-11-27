@@ -4,7 +4,7 @@ export default {
   name: "test-one",
 
   data: {
-    child: "test-one66666"
+    child: "test-one"
   },
 
   components: {
@@ -16,6 +16,12 @@ export default {
     byy: "aaa"
   },
 
+  methods: {
+    test() {
+      this.$emit("clickedFromTestOne", this.$get("name"), this.$get("child"));
+    }
+  },
+
   mounted() {
     // console.log("test-one__mounted", this);
   },
@@ -23,6 +29,9 @@ export default {
   render(c) {
     return c('div', {
       className: "test-one",
+      on: {
+        "click.stop": [this.test]
+      },
       style: {
         borderBottom: "1px solid red"
       }

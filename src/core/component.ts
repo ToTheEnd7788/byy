@@ -32,6 +32,7 @@ class Component {
     this.watch = vm.watch;
     this.mounted = vm.mounted;
     this.name = vm.name;
+    this._binds = {};
     this.$el;
 
     this._updateTimer = null;
@@ -81,7 +82,6 @@ class Component {
       this._updateTimer = setTimeout(() => {
         let vNode = this.render(this._createVnode.bind(this));
         diff(vNode, this._vNode, this);
-
         this._updateVNode(vNode);
 
         this._vNode = vNode;
@@ -89,11 +89,17 @@ class Component {
     }
   }
 
+  $emit(name: string, ...value) {
+    this.$parent._binds[name] && this.$parent._binds[name].apply(this.$parent, value);
+  }
+
   // Update this._vNode After $set, And Need To Keep Child<nodeType === "component">.component
   _updateVNode(vNode) {
     for (let i = 0; i < vNode.children.length; i++) {
       if (vNode.children[i].nodeType === "component") {
-        vNode.children[i].component = this._vNode.children[i].component;
+        if (!(vNode.children[i].component instanceof Component)) {
+          vNode.children[i].component = this._vNode.children[i].component;
+        }
       }
     }
 

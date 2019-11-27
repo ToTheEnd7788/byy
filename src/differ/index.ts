@@ -1,6 +1,7 @@
+import "../utils/shim";
 import { isStr } from "../utils/index";
-
 import { setStyle } from "../utils/setAttributes";
+import Component from "../core/component";
 
 function diff(n, o, vm) {
   let paches = comparer(n, o, "0");
@@ -8,7 +9,6 @@ function diff(n, o, vm) {
   if (paches) {
     addPatch(paches, vm, n, o);
   }
-
 }
 
 function getTargetElement(el, pos) {
@@ -44,6 +44,15 @@ function addPatch(paches, vm, n, o) {
         setStyle(targetEle, paches[p][k]);
       } else if (k === "replace") {
         
+      } else if (k === "add") {
+        for (let node of paches[p][k]) {
+          if (node.nodeType === "component") {
+            node.component = new Component(node.component, vm);
+            targetEle.appendChild(node.component.$el);
+          } else {
+            targetEle.appendChild(vm._createElement(node));
+          }
+        }
       } else if (k === "remove") {
         for (let i = 0; i < paches[p][k] ; i++) {
           let lastChild = targetEle.childNodes[targetEle.childNodes.length - 1];
@@ -72,10 +81,10 @@ function compareChilds(n, o, d) {
     });
   } else if (n && o) {
     if (n.length > o.length) {
-      n = n.slice(o.length - n.length);
       res[d] = Object.assign({}, res[d], {
-        add: n
+        add: n.slice(o.length - n.length)
       });
+      n = n.slice(0, o.length - n.length);
     } else if (n.length < o.length) {
       res[d] = Object.assign({}, res[d], {
         remove: o.length - n.length
@@ -153,7 +162,7 @@ function comparer(n, o, d) {
       ...oldObj
     } = o,
     childrenRes = compareChilds(children, ochildren, d);
-
+  
   res[d] = compareObjs(newObj, oldObj);
 
   if (childrenRes) res = Object.assign({}, res, childrenRes);

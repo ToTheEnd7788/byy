@@ -41,19 +41,40 @@ export default {
   },
 
   methods: {
-    clicked() {
-      let temp = this.$get('list');
-      temp.splice(0, 2, {
-        name: "99999999",
-        id: 9
-      });
+    // test-one组件上报的事件
+    trigFromChild(name, child) {
+      console.log("From Child", name, child);
+    },
 
-      this.$set('list', temp);
+    clicked() {
+      // let temp = this.$get('list');
+      // // temp.splice(2, 1, {
+      // //   name: "99999999",
+      // //   id: 9
+      // // },{
+      // //   name: "wwwwwwwww",
+      // //   id: "www"
+      // // });
+
+      // temp.push({
+      //   name: "99999999",
+      //   id: 9
+      // })
+
+      // temp.push({
+      //   name: "wwwwwwwww",
+      //   id: "www"
+      // });
+
+      // this.$set('list', temp);
     },
 
     renderTestOne(c) {
       return this.$get('list').map(item => {
         return c('test-one', {
+          bind: {
+            clickedFromTestOne: this.trigFromChild
+          },
           props: {
             name: item.name,
             byy: item.id
