@@ -28,11 +28,32 @@ class Moon {
     }
   }
 
+  _triggerMounter(component) {
+    component.mounted && component.mounted();
+
+    let vNode = component._vNode,
+      { children } = vNode;
+
+    if (vNode.nodeType === "component") {
+      vNode.component.mounted && vNode.component.mounted();
+    }
+
+    if (children) {
+      for (let child of children) {
+        if (child.nodeType === "component") {
+          this._triggerMounter(child.component);
+        }
+      }
+    }
+  }
+
   _render(pass, component) {
     if (pass === "byy") {
       if (isObj(component)) {
         this.$options.$el = document.querySelector(this.$options.el || this.$options.el);
-        this._vm = new Component(component, this.$options);
+        this._vm = new Component(component);
+        this.$options.$el.appendChild(this._vm.$el);
+        this._triggerMounter(this._vm);
       } else {
         warn(`You must init Moon with a component`);
       }

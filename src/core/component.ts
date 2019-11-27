@@ -1,23 +1,103 @@
-import { isObj, isStr, warn } from "../utils/index";
+import { isObj, isStr, isArr, warn } from "../utils/index";
 import differ from "./differ";
 import VNode from "./vNode";
 import Moon from "./index";
+import { diff } from "../differ/index";
+import { setStyle, setAttibutes } from "../utils/setAttributes";
+
 
 
 class Component {
   $el: HTMLElement;
-  $options: any;
-  watch: object;
-  _vm: any;
+  $parent?: object;
+  watch?: object;
+  render: Function;
+  methods?: object;
+  components?: object;
+  data?: object;
+  props?: object;
+  mounted?: Function;
+  name: string;
+  
+  _binds?: object;
   _vNode: object;
-  _propsData: object;
+  _updateTimer: any;
 
-  constructor(vm, options) {
-    this.$options = options;
-    this._vm = vm;
-    this._propsData;
+  constructor(vm, parent?: object) {
+    this.components = vm.components;
+    this.data = vm.data;
+    this.props = vm.props;
+    this.render = vm.render;
+    this.methods = vm.methods;
+    this.watch = vm.watch;
+    this.mounted = vm.mounted;
+    this.name = vm.name;
+    this.$el;
+
+    this._updateTimer = null;
+
+    if (parent) this.$parent = parent;
 
     this._createComponent();
+  }
+
+  $get(name: string) {
+    let res;
+
+    res = this.data
+      ? this.data[name] ||
+      this.data[name] === 0 ||
+      this.data[name] === false ||
+      this.data[name] === ""
+        ? this.data[name]
+        : this.props
+          ? this.props[name] ||
+            this.props[name] === 0 ||
+            this.props[name] === false ||
+            this.props[name] === ""
+              ? this.props[name]
+              : undefined
+          : undefined
+      : this.props
+        ? this.props[name] ||
+          this.props[name] === 0 ||
+          this.props[name] === false ||
+          this.props[name] === ""
+            ? this.props[name]
+            : undefined
+        : undefined;
+
+    if (isArr(res)) res = res.slice(0);
+    else if (isObj(res)) res = Object.assign({}, res);
+
+    return res;
+  }
+
+  $set(name: string, value: any) {
+    if (this.data[name] !== value) {
+      this.data[name] = value;
+
+      clearTimeout(this._updateTimer);
+      this._updateTimer = setTimeout(() => {
+        let vNode = this.render(this._createVnode.bind(this));
+        diff(vNode, this._vNode, this);
+
+        this._updateVNode(vNode);
+
+        this._vNode = vNode;
+      }, 0);
+    }
+  }
+
+  // Update this._vNode After $set, And Need To Keep Child<nodeType === "component">.component
+  _updateVNode(vNode) {
+    for (let i = 0; i < vNode.children.length; i++) {
+      if (vNode.children[i].nodeType === "component") {
+        vNode.children[i].component = this._vNode.children[i].component;
+      }
+    }
+
+    return vNode;
   }
 
   _createElement(vNode) {
@@ -26,9 +106,10 @@ class Component {
     if (vNode.nodeType === 1) {
       ele = document.createElement(vNode.tag);
     } else if (vNode.nodeType === 3) {
-      ele = document.createTextNode(vNode.value);
+      ele = document.createTextNode(vNode.nodeValue);
     } else {
-
+      vNode.component = new Component(vNode.component, this);
+      ele = vNode.component.$el;
     }
 
     if (vNode.children) {
@@ -37,16 +118,39 @@ class Component {
       }
     }
 
+    setStyle(ele, vNode.style);
+    setAttibutes(ele, vNode, this);
+
     return ele;
   }
 
-  _createVnode(a: string, b?: object, c?: any) {
-    let children = [];
+  _createVnode(a: string, b?: any, c?: any) {
+    let children = [],
+      component,
+      nodeType: number | string = 1;
+
+      if (this.components && this.components[a]) {
+      component = this.__deepClone(this.components[a]);
+      
+      if (b) {
+        if (b.props && component.props) {
+          component.props = Object.assign(component.props, b.props);
+        }
+  
+        if (b.bind) {
+          for (let key in b.bind) {
+            this._binds[key] = b.bind[key]
+          }
+        }
+      }
+
+      nodeType = "component";
+    }
 
     if (c && c.length > 0) {
       children = c.reduce((acc, child) => {
         if (isObj(child)) acc.push(child);
-        else acc.push({ nodeType: 3, value: child });
+        else acc.push({ nodeType: 3, nodeValue: child });
 
         return acc;
       }, []);
@@ -56,23 +160,44 @@ class Component {
       tag: a,
       children,
       ...b,
-      nodeType: 1
+      component,
+      nodeType
     };
   }
 
-  $mount() {
-    this.$options.$el.parentNode.replaceChild(this.$el, this.$options.$el);
+  // Trigger By The Component Parent
+  _updateChildComponent(props) {
+    this.props = Object.assign(this.props, props);
+    let vNode = this.render(this._createVnode.bind(this));
+
+    diff(vNode, this._vNode, this);
   }
 
-  // Used By Component Self
-  _updateChildComponent() {
+  __deepClone(obj) {
+    let result = {};
+    for (let key in obj) {
+      if (obj.hasOwnProperty(key)) {
+        if (isObj(obj[key]) && !(obj[key] instanceof Component)) {
+          result[key] = this.__deepClone(obj[key]);
+        } else {
+          result[key] = obj[key];
+        }
+      }
+    }
 
+    return result;
+  }
+
+  __transferMethods() {
+    Object.assign(this, {
+      ...this.methods
+    });
   }
 
   _createComponent() {
-    this._vNode = this._vm.render(this._createVnode.bind(this._vm));
+    this.__transferMethods();
+    this._vNode = this.render(this._createVnode.bind(this));
     this.$el = this._createElement(this._vNode);
-    this.$mount();
   }
 };
 

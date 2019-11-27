@@ -9,3 +9,7 @@ export function isObj(value: any): boolean {
 export function isStr(value: any): boolean {
   return Object.prototype.toString.call(value) === "[object String]";
 }
+
+export function isArr(value: any): boolean {
+  return Object.prototype.toString.call(value) === "[object Array]";
+}
