@@ -13,17 +13,18 @@ export default {
 
   props: {
     name: "test-one",
-    byy: "aaa"
+    byy: "aaa",
+    id: ""
   },
 
   methods: {
     test() {
-      this.$emit("clickedFromTestOne", this.$get("name"), this.$get("child"));
+      this.$emit("clickedFromTestOne", this.$get('name'));
     }
   },
 
   mounted() {
-    // console.log("test-one__mounted", this);
+    // console.log("test-one__mounted", this.BYY);
   },
 
   render(c) {
@@ -37,15 +38,11 @@ export default {
       }
     }, [
       c('p', {
+        on: {
+          "click.stop": [this.test]
+        },
         className: "test-one__three"
-      }, [
-        c('test-three', {
-          props: {
-            name: this.$get('name'),
-            byy: this.$get('byy')
-          }
-        }
-      )])
+      }, [`${this.$get('id')}-${this.$get('name')}`])
     ])
   }
 };

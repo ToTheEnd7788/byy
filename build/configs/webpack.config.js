@@ -9,6 +9,7 @@ import {
 } from "./base";
 
 export default {
+  devtool: "#source-map",
   context: testRoot,
   mode: "development",
   entry: {

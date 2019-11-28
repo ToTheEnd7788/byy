@@ -1,4 +1,3 @@
-function e(e){console.error("Moon Error:\n"+e)}function t(e){return"[object Object]"===Object.prototype.toString.call(e)}function n(e){return"[object String]"===Object.prototype.toString.call(e)}
 /*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
@@ -13,4 +12,728 @@ MERCHANTABLITY OR NON-INFRINGEMENT.
 See the Apache Version 2.0 License for specific language governing permissions
 and limitations under the License.
 ***************************************************************************** */
-var o=function(){return(o=Object.assign||function(e){for(var t,n=1,o=arguments.length;n<o;n++)for(var r in t=arguments[n])Object.prototype.hasOwnProperty.call(t,r)&&(e[r]=t[r]);return e}).apply(this,arguments)};function r(e,t){var n={};for(var o in e)Object.prototype.hasOwnProperty.call(e,o)&&t.indexOf(o)<0&&(n[o]=e[o]);if(null!=e&&"function"==typeof Object.getOwnPropertySymbols){var r=0;for(o=Object.getOwnPropertySymbols(e);r<o.length;r++)t.indexOf(o[r])<0&&Object.prototype.propertyIsEnumerable.call(e,o[r])&&(n[o[r]]=e[o[r]])}return n}Function.prototype.bind||(Function.prototype.bind=function(e){if("function"!=typeof this)throw TypeError("Bind must be called on a function");var t=Array.prototype.slice.call(arguments,1),n=this,o=function(){},r=function(){return n.apply(this instanceof o?this:e,t.concat(Array.prototype.slice.call(arguments)))};return this.prototype&&(o.prototype=this.prototype),r.prototype=new o,r}),Array.isArray||(Array.isArray=function(e){return Boolean(e&&"[object Array]"===Object.prototype.toString.call(Object(e)))}),Array.prototype.find||(Array.prototype.find=function(e){var t;if(e){for(var n=this,o=0;o<n.length;o++)if(e(n[o],o)){t=n[o];break}}else console.error("[Find]: params[0] is invalid");return t}),Array.prototype.findIndex||(Array.prototype.findIndex=function(e){var t=-1;if(e){for(var n=0;n<this.length;n++)if(e(this[n],n)){t=n;break}}else console.error("[FindIndex]: params[0] is invalid");return t}),Object.keys||(Object.keys=function(e){var t=[];for(var n in e)t.push(n);return t}),Array.prototype.map||(Array.prototype.map=function(e){for(var t=[],n=this.slice(0),o=0;o<n.length;o++)t.push(e(n[o],o,n));return t}),Array.prototype.filter||(Array.prototype.filter=function(e){for(var t=[],n=this.slice(0),o=0;o<n.length;o++)e(n[o],o)&&t.push(n[o]);return t}),"function"!=typeof Object.assign&&(Object.assign=function(e,t){if(null==e)throw new TypeError("Cannot convert undefined or null to object");for(var n=Object(e),o=1;o<arguments.length;o++){var r=arguments[o];if(null!=r)for(var i in r)Object.prototype.hasOwnProperty.call(r,i)&&(n[i]=r[i])}return n}),Array.prototype.reduce||(Array.prototype.reduce=function(e){if(null===this)throw new TypeError("Array.prototype.reduce called on null or undefined");if("function"!=typeof e)throw new TypeError(e+" is not a function");var t,n=Object(this),o=n.length>>>0,r=0;if(arguments.length>=2)t=arguments[1];else{for(;r<o&&!(r in n);)r++;if(r>=o)throw new TypeError("Reduce of empty array with no initial value");t=n[r++]}for(;r<o;)r in n&&(t=e(t,n[r],r,n)),r++;return t}),Array.prototype.indexOf||(Array.prototype.indexOf=function(e,t){var n;if(null==this)throw new TypeError('"this" is null or not defined');var o=Object(this),r=o.length>>>0;if(0===r)return-1;var i=+t||0;if(Math.abs(i)===Infinity&&(i=0),i>=r)return-1;for(n=Math.max(i>=0?i:r-Math.abs(i),0);n<r;){if(n in o&&o[n]===e)return n;n++}return-1});var i={stop:function(e){e.stopPropagation?e.stopPropagation():e.cancelBubble=!0},prevent:function(e){e.preventDefault?e.preventDefault():e.returnValue=!1}};function s(e,t){for(var n in t)e.style.setAttribute?e.style.setAttribute(n,t[n]):e.style[n]=t[n]}function a(o,r,a){var p=function(p){"className"===p?t(r[p])?o[p]=Object.keys(r[p]).filter((function(e){return r[p][e]})).join(" "):n(r[p])?o[p]=r[p]:e("The className must be string or object"):"on"===p?function(e,t,n){var o=function(o){var r=o.split("."),s=r[0],a=r[1],p=t[o],c=p[0],l=p.slice(1);e["on"+s]=null,e["on"+s]=function(e){var t=e||window.event;a&&i[a]&&i[a](t),l=l.reduce((function(e,n){return"$event"===n?e.push(t):e.push(n),e}),[]),c.apply(n,l)}};for(var r in t)o(r)}(o,r[p],a):"style"===p?s(o,r[p]):"component"!==p&&"nodeType"!==p&&"children"!==p&&"tag"!==p&&(o[p]=r[p])};for(var c in r)p(c)}function p(e,t,n){var o=h(e,t,"0");o&&function(e,t,n,o){for(var r in e){var i=c(t.$el,r);for(var a in e[r]){if("props"===a)l(o,r)._updateChildComponent(e[r][a]);else if("style"===a)s(i,e[r][a]);else if("replace"===a);else if("add"===a)for(var p=0,h=e[r][a];p<h.length;p++){var d=h[p];"component"===d.nodeType?(d.component=new u(d.component,t),i.appendChild(d.component.$el)):i.appendChild(t._createElement(d))}else if("remove"===a)for(var f=0;f<e[r][a];f++){var y=i.childNodes[i.childNodes.length-1];i.removeChild(y)}else"delete"===a?i.parentNode.removeChild(i.parentNode):i[a]=e[r][a]}}}(o,n,0,t)}function c(e,t){for(var n=t.split("-"),o=1;o<n.length;o++)e=e.childNodes[n[o]];return e}function l(e,t){for(var n=t.split("-"),o=e,r=1;r<n.length;r++)o=o.children[n[r]];return o.component}function h(e,t,o){var i={},s=(e.on,e.bind,e.children),a=e.nodeType,p=e.tag,c=e.nodeValue,l=(e.component,r(e,["on","bind","children","nodeType","tag","nodeValue","component"])),u=(t.on,t.bind,t.children),d=t.nodeType,f=t.tag,y=t.nodeValue,v=(t.component,r(t,["on","bind","children","nodeType","tag","nodeValue","component"])),m=function(e,t,n){var o={};if(e&&!t)o[n]=Object.assign({},o[n],{add:[e]});else if(t&&!e)o[n]=Object.assign({},o[n],{"delete":!0});else if(e&&t){e.length>t.length?(o[n]=Object.assign({},o[n],{add:e.slice(t.length-e.length)}),e=e.slice(0,t.length-e.length)):e.length<t.length&&(o[n]=Object.assign({},o[n],{remove:t.length-e.length}));for(var r=0;r<e.length;r++){var i=h(e[r],t[r],n+"-"+r);i&&(o=Object.assign({},o,i))}}return Object.keys(o).length>0?o:null}(s,u,o);return i[o]=function(e,t){var o={},r=function(r){var i,s;if(n(e[r]))o=Object.assign({},o,((i={})[r]=e[r],i));else if("className"===r)o[r]=Object.keys(e[r]).reduce((function(t,n){return e[r][n]&&(t+=" "+n),t}),"").slice(1);else for(var a in e[r])e[r][a]!==t[r][a]&&(o[r]=Object.assign({},o[r],((s={})[a]=e[r][a],s)))};for(var i in e)r(i);return Object.keys(o).length>0?o:null}(l,v),m&&(i=Object.assign({},i,m)),a!==d||p!==f?i[o]=Object.assign({},i[o],{repalce:e}):c!==y&&(i[o]=Object.assign({},i[o],{nodeValue:c})),Object.keys(i).length>0?i:null}var u=function(){function e(e,t){this.components=e.components,this.data=e.data,this.props=e.props,this.render=e.render,this.methods=e.methods,this.watch=e.watch,this.mounted=e.mounted,this.name=e.name,this._binds={},this.$el,this._updateTimer=null,t&&(this.$parent=t),this._createComponent()}return e.prototype.$get=function(e){var n,o;return n=this.data&&(this.data[e]||0===this.data[e]||!1===this.data[e]||""===this.data[e])?this.data[e]:this.props&&(this.props[e]||0===this.props[e]||!1===this.props[e]||""===this.props[e])?this.props[e]:undefined,o=n,"[object Array]"===Object.prototype.toString.call(o)?n=n.slice(0):t(n)&&(n=Object.assign({},n)),n},e.prototype.$set=function(e,t){var n=this;this.data[e]!==t&&(this.data[e]=t,clearTimeout(this._updateTimer),this._updateTimer=setTimeout((function(){var e=n.render(n._createVnode.bind(n));p(e,n._vNode,n),n._updateVNode(e),n._vNode=e}),0))},e.prototype.$emit=function(e){for(var t=[],n=1;n<arguments.length;n++)t[n-1]=arguments[n];this.$parent._binds[e]&&this.$parent._binds[e].apply(this.$parent,t)},e.prototype._updateVNode=function(t){for(var n=0;n<t.children.length;n++)"component"===t.children[n].nodeType&&(t.children[n].component instanceof e||(t.children[n].component=this._vNode.children[n].component));return t},e.prototype._createElement=function(t){var n;if(1===t.nodeType?n=document.createElement(t.tag):3===t.nodeType?n=document.createTextNode(t.nodeValue):(t.component=new e(t.component,this),n=t.component.$el),t.children)for(var o=0,r=t.children;o<r.length;o++){var i=r[o];n.appendChild(this._createElement(i))}return s(n,t.style),a(n,t,this),n},e.prototype._createVnode=function(e,n,r){var i,s=[],a=1;if(this.components&&this.components[e]){if(i=this.__deepClone(this.components[e]),n&&(n.props&&i.props&&(i.props=Object.assign(i.props,n.props)),n.bind))for(var p in n.bind)this._binds[p]=n.bind[p];a="component"}return r&&r.length>0&&(s=r.reduce((function(e,n){return t(n)?e.push(n):e.push({nodeType:3,nodeValue:n}),e}),[])),o(o({tag:e,children:s},n),{component:i,nodeType:a})},e.prototype._updateChildComponent=function(e){this.props=Object.assign(this.props,e),p(this.render(this._createVnode.bind(this)),this._vNode,this)},e.prototype.__deepClone=function(n){var o={};for(var r in n)n.hasOwnProperty(r)&&(!t(n[r])||n[r]instanceof e?o[r]=n[r]:o[r]=this.__deepClone(n[r]));return o},e.prototype.__transferMethods=function(){Object.assign(this,o({},this.methods))},e.prototype._createComponent=function(){this.__transferMethods(),this._vNode=this.render(this._createVnode.bind(this)),this.$el=this._createElement(this._vNode)},e}(),d=function(){function n(e){this.$options=Object.assign({el:"app",$el:null,render:null,autoRender:!0},e),this._vm,this.$options.name||this._init("byy")}return n.prototype._init=function(t){"byy"===t?this.$options.render(this._render.bind(this,"byy")):e("The function named [_init] is a inner function, you can't call it directly")},n.prototype._triggerMounter=function(e){e.mounted&&e.mounted();var t=e._vNode,n=t.children;if("component"===t.nodeType&&t.component.mounted&&t.component.mounted(),n)for(var o=0,r=n;o<r.length;o++){var i=r[o];"component"===i.nodeType&&this._triggerMounter(i.component)}},n.prototype._render=function(n,o){"byy"===n?t(o)?(this.$options.$el=document.querySelector(this.$options.el||this.$options.el),this._vm=new u(o),this.$options.$el.appendChild(this._vm.$el),this._triggerMounter(this._vm)):e("You must init Moon with a component"):e("The function named [_render] is a inner function, you can't call it directly")},n}();export default d;
+/* global Reflect, Promise */
+
+var extendStatics = function(d, b) {
+    extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return extendStatics(d, b);
+};
+
+function __extends(d, b) {
+    extendStatics(d, b);
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+}
+
+var __assign = function() {
+    __assign = Object.assign || function __assign(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+
+function __rest(s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+}
+
+function warn(content) {
+    console.error("Moon Error:\n" + content);
+}
+function isObj(value) {
+    return Object.prototype.toString.call(value) === "[object Object]";
+}
+function isStr(value) {
+    return Object.prototype.toString.call(value) === "[object String]";
+}
+function isArr(value) {
+    return Object.prototype.toString.call(value) === "[object Array]";
+}
+//# sourceMappingURL=index.js.map
+
+if (!Function.prototype.bind) {
+    Function.prototype.bind = function (o) {
+        if (typeof this !== 'function') {
+            throw TypeError("Bind must be called on a function");
+        }
+        var args = Array.prototype.slice.call(arguments, 1), self = this, nop = function () { }, bound = function () {
+            return self.apply(this instanceof nop ? this : o, args.concat(Array.prototype.slice.call(arguments)));
+        };
+        if (this.prototype)
+            nop.prototype = this.prototype;
+        bound.prototype = new nop();
+        return bound;
+    };
+}
+if (!Array.isArray) {
+    Array.isArray = function (o) {
+        return Boolean(o &&
+            Object.prototype.toString.call(Object(o)) === '[object Array]');
+    };
+}
+if (!Array.prototype.find) {
+    Array.prototype.find = function (callback) {
+        var result;
+        if (!callback) {
+            console.error("[Find]: params[0] is invalid");
+        }
+        else {
+            var o = this;
+            for (var i = 0; i < o.length; i++) {
+                if (callback(o[i], i)) {
+                    result = o[i];
+                    break;
+                }
+            }
+        }
+        return result;
+    };
+}
+if (!Array.prototype.findIndex) {
+    Array.prototype.findIndex = function (callback) {
+        var index = -1;
+        if (!callback) {
+            console.error("[FindIndex]: params[0] is invalid");
+        }
+        else {
+            var o = this;
+            for (var i = 0; i < o.length; i++) {
+                if (callback(o[i], i)) {
+                    index = i;
+                    break;
+                }
+            }
+        }
+        return index;
+    };
+}
+if (!Object.keys) {
+    Object.keys = function (o) {
+        var res = [];
+        for (var key in o) {
+            res.push(key);
+        }
+        return res;
+    };
+}
+if (!Array.prototype.map) {
+    Array.prototype.map = function (callback) {
+        var res = [], o = this.slice(0);
+        for (var i = 0; i < o.length; i++) {
+            res.push(callback(o[i], i, o));
+        }
+        return res;
+    };
+}
+if (!Array.prototype.filter) {
+    Array.prototype.filter = function (callback) {
+        var res = [], o = this.slice(0);
+        for (var i = 0; i < o.length; i++) {
+            if (callback(o[i], i)) {
+                res.push(o[i]);
+            }
+        }
+        return res;
+    };
+}
+if (typeof Object.assign !== 'function') {
+    Object.assign = function assign(target, varArgs) {
+        if (target == null) {
+            throw new TypeError('Cannot convert undefined or null to object');
+        }
+        var to = Object(target);
+        for (var index = 1; index < arguments.length; index++) {
+            var nextSource = arguments[index];
+            if (nextSource != null) {
+                for (var nextKey in nextSource) {
+                    if (Object.prototype.hasOwnProperty.call(nextSource, nextKey)) {
+                        to[nextKey] = nextSource[nextKey];
+                    }
+                }
+            }
+        }
+        return to;
+    };
+}
+if (!Array.prototype.reduce) {
+    Array.prototype.reduce = function (callback) {
+        if (this === null) {
+            throw new TypeError('Array.prototype.reduce ' +
+                'called on null or undefined');
+        }
+        if (typeof callback !== 'function') {
+            throw new TypeError(callback +
+                ' is not a function');
+        }
+        var o = Object(this);
+        var len = o.length >>> 0;
+        var k = 0;
+        var value;
+        if (arguments.length >= 2) {
+            value = arguments[1];
+        }
+        else {
+            while (k < len && !(k in o)) {
+                k++;
+            }
+            if (k >= len) {
+                throw new TypeError('Reduce of empty array ' +
+                    'with no initial value');
+            }
+            value = o[k++];
+        }
+        while (k < len) {
+            if (k in o) {
+                value = callback(value, o[k], k, o);
+            }
+            k++;
+        }
+        return value;
+    };
+}
+if (!Array.prototype.indexOf) {
+    Array.prototype.indexOf = function (searchElement, fromIndex) {
+        var k;
+        if (this == null) {
+            throw new TypeError('"this" is null or not defined');
+        }
+        var O = Object(this);
+        var len = O.length >>> 0;
+        if (len === 0) {
+            return -1;
+        }
+        var n = +fromIndex || 0;
+        if (Math.abs(n) === Infinity) {
+            n = 0;
+        }
+        if (n >= len) {
+            return -1;
+        }
+        k = Math.max(n >= 0 ? n : len - Math.abs(n), 0);
+        while (k < len) {
+            if (k in O && O[k] === searchElement) {
+                return k;
+            }
+            k++;
+        }
+        return -1;
+    };
+}
+//# sourceMappingURL=shim.js.map
+
+var eventFilter = {
+    stop: function (e) {
+        if (e.stopPropagation)
+            e.stopPropagation();
+        else
+            e.cancelBubble = true;
+    },
+    prevent: function (e) {
+        if (e.preventDefault)
+            e.preventDefault();
+        else
+            e.returnValue = false;
+    }
+};
+function setStyle(el, style) {
+    for (var key in style) {
+        if (el.style.setAttribute)
+            el.style.setAttribute(key, style[key]);
+        else
+            el.style[key] = style[key];
+    }
+}
+function setAttibutes(el, node, ctx) {
+    var _loop_1 = function (key) {
+        if (key === 'className') {
+            if (isObj(node[key])) {
+                el[key] = Object.keys(node[key]).filter(function (item) {
+                    return node[key][item];
+                }).join(" ");
+            }
+            else if (isStr(node[key])) {
+                el[key] = node[key];
+            }
+            else {
+                warn("The className must be string or object");
+            }
+        }
+        else if (key === 'on') {
+            setEvents(el, node[key], ctx);
+        }
+        else if (key === 'style') {
+            setStyle(el, node[key]);
+        }
+        else if (key !== 'component' && key !== 'nodeType' && key !== 'children' && key !== "tag") {
+            el[key] = node[key];
+        }
+    };
+    for (var key in node) {
+        _loop_1(key);
+    }
+}
+function setEvents(el, event, ctx) {
+    var _loop_2 = function (name) {
+        var _a = name.split('.'), n = _a[0], type = _a[1], _b = event[name], handler = _b[0], params = _b.slice(1);
+        el["on" + n] = null;
+        el["on" + n] = function (e) {
+            var evt = e || window.event;
+            if (type) {
+                eventFilter[type] && eventFilter[type](evt);
+            }
+            params = params.reduce(function (acc, item) {
+                if (item === '$event')
+                    acc.push(evt);
+                else
+                    acc.push(item);
+                return acc;
+            }, []);
+            handler.apply(ctx, params);
+        };
+    };
+    for (var name in event) {
+        _loop_2(name);
+    }
+}
+//# sourceMappingURL=setAttributes.js.map
+
+function diff(n, o, vm) {
+    var paches = comparer(n, o, "0");
+    if (paches) {
+        addPatch(paches, vm, n, o);
+    }
+}
+function getTargetElement(el, pos) {
+    var list = pos.split('-');
+    for (var i = 1; i < list.length; i++) {
+        el = el.childNodes[list[i]];
+    }
+    return el;
+}
+function getTargetComponent(vNode, pos) {
+    var list = pos.split('-'), res = vNode;
+    for (var i = 1; i < list.length; i++) {
+        res = res.children[list[i]];
+    }
+    return res.component;
+}
+function addPatch(paches, vm, n, o) {
+    for (var p in paches) {
+        var targetEle = getTargetElement(vm.$el, p);
+        for (var k in paches[p]) {
+            if (k === "props") {
+                var component = getTargetComponent(o, p);
+                component._updateChildComponent(paches[p][k]);
+            }
+            else if (k === "style") {
+                setStyle(targetEle, paches[p][k]);
+            }
+            else if (k === "replace") {
+                var freshEle = void 0;
+                if (paches[p][k].nodeType === "component") {
+                    var component = Object.assign(vm.components[paches[p][k].tag], {
+                        props: paches[p][k].props
+                    });
+                    paches[p][k].component = new Component(component, vm, vm.$Moon);
+                    freshEle = paches[p][k].component.$el;
+                }
+                else {
+                    freshEle = vm._createElement(paches[p][k]);
+                }
+                targetEle.parentNode.replaceChild(freshEle, targetEle);
+            }
+            else if (k === "add") {
+                for (var _i = 0, _a = paches[p][k]; _i < _a.length; _i++) {
+                    var node = _a[_i];
+                    if (node.nodeType === "component") {
+                        node.component = new Component(node.component, vm, vm.$Moon);
+                        targetEle.appendChild(node.component.$el);
+                    }
+                    else {
+                        targetEle.appendChild(vm._createElement(node));
+                    }
+                }
+            }
+            else if (k === "remove") {
+                for (var i = 0; i < paches[p][k]; i++) {
+                    var lastChild = targetEle.childNodes[targetEle.childNodes.length - 1];
+                    targetEle.removeChild(lastChild);
+                }
+            }
+            else if (k === "delete") {
+                targetEle.parentNode.removeChild(targetEle);
+            }
+            else {
+                targetEle[k] = paches[p][k];
+            }
+        }
+    }
+}
+function compareChilds(n, o, d) {
+    console.log(5555555, n, o);
+    var res = {};
+    if (n && !o) {
+        res[d] = Object.assign({}, res[d], {
+            add: [n]
+        });
+    }
+    else if (o && !n) {
+        res[d] = Object.assign({}, res[d], {
+            delete: true
+        });
+    }
+    else if (n && o) {
+        if (n.length > o.length) {
+            res[d] = Object.assign({}, res[d], {
+                add: n.slice(o.length - n.length)
+            });
+            n = n.slice(0, o.length - n.length);
+        }
+        else if (n.length < o.length) {
+            res[d] = Object.assign({}, res[d], {
+                remove: o.length - n.length
+            });
+        }
+        for (var i = 0; i < n.length; i++) {
+            var m = comparer(n[i], o[i], d + "-" + i);
+            if (m) {
+                res = Object.assign({}, res, m);
+            }
+        }
+    }
+    return Object.keys(res).length > 0
+        ? res
+        : null;
+}
+function compareObjs(n, o) {
+    var res = {};
+    var _loop_1 = function (k) {
+        var _a, _b;
+        if (isStr(n[k])) {
+            res = Object.assign({}, res, (_a = {},
+                _a[k] = n[k],
+                _a));
+        }
+        else {
+            if (k === "className") {
+                res[k] = Object.keys(n[k]).reduce(function (acc, item) {
+                    if (n[k][item]) {
+                        acc += " " + item;
+                    }
+                    return acc;
+                }, "").slice(1);
+            }
+            else {
+                for (var inner in n[k]) {
+                    if (n[k] && o[k]) {
+                        if (n[k][inner] !== o[k][inner]) {
+                            res[k] = Object.assign({}, res[k], (_b = {},
+                                _b[inner] = n[k][inner],
+                                _b));
+                        }
+                    }
+                }
+            }
+        }
+    };
+    for (var k in n) {
+        _loop_1(k);
+    }
+    return Object.keys(res).length > 0
+        ? res
+        : null;
+}
+function comparer(n, o, d) {
+    var res = {}, on = n.on, bind = n.bind, children = n.children, nodeType = n.nodeType, tag = n.tag, nodeValue = n.nodeValue, component = n.component, newObj = __rest(n, ["on", "bind", "children", "nodeType", "tag", "nodeValue", "component"]), oon = o.on, obind = o.bind, ochildren = o.children, onodeType = o.nodeType, otag = o.tag, onodeValue = o.nodeValue, ocomponent = o.component, oldObj = __rest(o, ["on", "bind", "children", "nodeType", "tag", "nodeValue", "component"]), childrenRes = compareChilds(children, ochildren, d);
+    res[d] = compareObjs(newObj, oldObj);
+    if (childrenRes)
+        res = Object.assign({}, res, childrenRes);
+    if (nodeType !== onodeType || tag !== otag) {
+        res[d] = Object.assign({}, res[d], {
+            replace: n
+        });
+    }
+    else if (nodeValue !== onodeValue) {
+        res[d] = Object.assign({}, res[d], {
+            nodeValue: nodeValue
+        });
+    }
+    return Object.keys(res).length > 0
+        ? res
+        : null;
+}
+//# sourceMappingURL=index.js.map
+
+var Component = (function () {
+    function Component(vm, parent, Moon) {
+        this.components = vm.components;
+        this.data = vm.data;
+        this.props = vm.props;
+        this.render = vm.render;
+        this.methods = vm.methods;
+        this.watch = vm.watch;
+        this.mounted = vm.mounted;
+        this.created = vm.created;
+        this.name = vm.name;
+        this._binds = {};
+        this._tickers = [];
+        this.$el;
+        this.$Moon = Moon;
+        for (var key in Moon.$inserts) {
+            this[key] = Moon.$inserts[key];
+        }
+        this._updateTimer = null;
+        if (parent)
+            this.$parent = parent;
+        this._createComponent();
+    }
+    Component.prototype.$get = function (name) {
+        var res;
+        res = this.data
+            ? this.data[name] ||
+                this.data[name] === 0 ||
+                this.data[name] === false ||
+                this.data[name] === ""
+                ? this.data[name]
+                : this.props
+                    ? this.props[name] ||
+                        this.props[name] === 0 ||
+                        this.props[name] === false ||
+                        this.props[name] === ""
+                        ? this.props[name]
+                        : undefined
+                    : undefined
+            : this.props
+                ? this.props[name] ||
+                    this.props[name] === 0 ||
+                    this.props[name] === false ||
+                    this.props[name] === ""
+                    ? this.props[name]
+                    : undefined
+                : undefined;
+        if (isArr(res))
+            res = res.slice(0);
+        else if (isObj(res))
+            res = Object.assign({}, res);
+        return res;
+    };
+    Component.prototype.$set = function (name, value) {
+        var _this = this;
+        if (this.data[name] !== value) {
+            this.__trigWatchers(name, value, this.data[name]);
+            this.data[name] = value;
+            clearTimeout(this._updateTimer);
+            this._updateTimer = setTimeout(function () {
+                var vNode = _this.render(_this._createVnode.bind(_this));
+                diff(vNode, _this._vNode, _this);
+                _this._vNode = _this._updateVNode(vNode, _this._vNode);
+            }, 0);
+        }
+    };
+    Component.prototype.$emit = function (name) {
+        var value = [];
+        for (var _i = 1; _i < arguments.length; _i++) {
+            value[_i - 1] = arguments[_i];
+        }
+        this.$parent._binds[name] && this.$parent._binds[name].apply(this.$parent, value);
+    };
+    Component.prototype.$nextTick = function (callback) {
+        this._tickers.push(callback);
+    };
+    Component.prototype.__trigTickers = function () {
+        for (var _i = 0, _a = this._tickers; _i < _a.length; _i++) {
+            var callback = _a[_i];
+            callback();
+        }
+        this._tickers = [];
+    };
+    Component.prototype.__trigWatchers = function (name, val, old) {
+        this.watch && this.watch[name] && this.watch[name].call(this, val, old);
+    };
+    Component.prototype._updateVNode = function (vNode, oldVnode) {
+        vNode.children = vNode.children || [];
+        for (var i = 0; i < vNode.children.length; i++) {
+            if (vNode.children[i].nodeType === "component") {
+                if (!(vNode.children[i].component instanceof Component)) {
+                    vNode.children[i] = Object.assign(vNode.children[i], {
+                        component: oldVnode.children[i].component
+                    });
+                }
+            }
+            else {
+                this._updateVNode(vNode.children[i], oldVnode.children[i]);
+            }
+        }
+        return vNode;
+    };
+    Component.prototype._createElement = function (vNode) {
+        var ele;
+        if (vNode.nodeType === 1) {
+            ele = document.createElement(vNode.tag);
+        }
+        else if (vNode.nodeType === 3) {
+            ele = document.createTextNode(vNode.nodeValue);
+        }
+        else {
+            vNode.component = new Component(vNode.component, this, this.$Moon);
+            ele = vNode.component.$el;
+        }
+        if (vNode.children) {
+            for (var _i = 0, _a = vNode.children; _i < _a.length; _i++) {
+                var childNode = _a[_i];
+                ele.appendChild(this._createElement(childNode));
+            }
+        }
+        setStyle(ele, vNode.style);
+        setAttibutes(ele, vNode, this);
+        return ele;
+    };
+    Component.prototype._createVnode = function (a, b, c) {
+        var children = [], component, nodeType = 1;
+        if (this.components && this.components[a]) {
+            component = this.__deepClone(this.components[a]);
+            if (b) {
+                if (b.props && component.props) {
+                    component.props = Object.assign(component.props, b.props);
+                }
+                if (b.bind) {
+                    for (var key in b.bind) {
+                        this._binds[key] = b.bind[key];
+                    }
+                }
+            }
+            nodeType = "component";
+        }
+        if (c && c.length > 0) {
+            children = c.reduce(function (acc, child) {
+                if (isObj(child))
+                    acc.push(child);
+                else
+                    acc.push({ nodeType: 3, nodeValue: child });
+                return acc;
+            }, []);
+        }
+        return __assign(__assign({ tag: a, children: children }, b), { component: component,
+            nodeType: nodeType });
+    };
+    Component.prototype._updateChildComponent = function (props) {
+        for (var k in props) {
+            this.__trigWatchers(k, props[k], this.props[k]);
+        }
+        this.props = Object.assign(this.props, props);
+        var vNode = this.render(this._createVnode.bind(this));
+        diff(vNode, this._vNode, this);
+        this._vNode = this._updateVNode(vNode, this._vNode);
+    };
+    Component.prototype.__deepClone = function (obj) {
+        var result = {};
+        for (var key in obj) {
+            if (obj.hasOwnProperty(key)) {
+                if (isObj(obj[key]) && !(obj[key] instanceof Component)) {
+                    result[key] = this.__deepClone(obj[key]);
+                }
+                else {
+                    result[key] = obj[key];
+                }
+            }
+        }
+        return result;
+    };
+    Component.prototype.__transferMethods = function () {
+        Object.assign(this, __assign({}, this.methods));
+    };
+    Component.prototype._createComponent = function () {
+        this.__transferMethods();
+        this._vNode = this.render(this._createVnode.bind(this));
+        this.$el = this._createElement(this._vNode);
+        this.created && this.created();
+    };
+    return Component;
+}());
+//# sourceMappingURL=component.js.map
+
+var StaticContext = (function () {
+    function StaticContext() {
+    }
+    StaticContext.use = function (name, value) {
+        this.$inserts[name] = value;
+    };
+    StaticContext.$inserts = {};
+    return StaticContext;
+}());
+//# sourceMappingURL=instance.js.map
+
+var Moon = (function (_super) {
+    __extends(Moon, _super);
+    function Moon(options) {
+        var _this = _super.call(this) || this;
+        _this.$options = Object.assign({
+            el: "app",
+            $el: null,
+            render: null,
+            autoRender: true
+        }, options);
+        _this._vm;
+        if (!_this.$options.name) {
+            _this._init("byy");
+        }
+        return _this;
+    }
+    Moon.prototype._init = function (pass) {
+        if (pass === "byy") {
+            this.$options.render(this._render.bind(this, "byy"));
+        }
+        else {
+            warn("The function named [_init] is a inner function, you can't call it directly");
+        }
+    };
+    Moon.prototype._triggerMounter = function (childs) {
+        for (var _i = 0, childs_1 = childs; _i < childs_1.length; _i++) {
+            var child = childs_1[_i];
+            if (child.nodeType === 'component') {
+                child.component.mounted && child.component.mounted();
+            }
+            if (child.children) {
+                this._triggerMounter(child.children);
+            }
+        }
+    };
+    Moon.prototype.$mount = function () {
+        this.$options.$el.appendChild(this._vm.$el);
+        this._vm.mounted && this._vm.mounted();
+        this._triggerMounter(this._vm._vNode.children);
+    };
+    Moon.prototype._render = function (pass, component) {
+        if (pass === "byy") {
+            if (isObj(component)) {
+                this.$options.$el = document.querySelector(this.$options.el || this.$options.el);
+                this._vm = new Component(component, null, Moon);
+                if (this.$options.autoRender)
+                    this.$mount();
+            }
+            else {
+                warn("You must init Moon with a component");
+            }
+        }
+        else {
+            warn("The function named [_render] is a inner function, you can't call it directly");
+        }
+    };
+    return Moon;
+}(StaticContext));
+//# sourceMappingURL=index.js.map
+
+export default Moon;

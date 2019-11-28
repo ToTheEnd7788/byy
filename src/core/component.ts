@@ -1,7 +1,4 @@
-import { isObj, isStr, isArr, warn } from "../utils/index";
-import differ from "./differ";
-import VNode from "./vNode";
-import Moon from "./index";
+import { isObj, isArr } from "../utils/index";
 import { diff } from "../differ/index";
 import { setStyle, setAttibutes } from "../utils/setAttributes";
 
@@ -11,19 +8,22 @@ class Component {
   $el: HTMLElement;
   $parent?: object;
   watch?: object;
+  $Moon: any;
   render: Function;
   methods?: object;
   components?: object;
   data?: object;
   props?: object;
   mounted?: Function;
+  created?: Function;
   name: string;
   
   _binds?: object;
   _vNode: object;
   _updateTimer: any;
+  _tickers: Array<Function>;
 
-  constructor(vm, parent?: object) {
+  constructor(vm, parent?: object, Moon?: any) {
     this.components = vm.components;
     this.data = vm.data;
     this.props = vm.props;
@@ -31,9 +31,16 @@ class Component {
     this.methods = vm.methods;
     this.watch = vm.watch;
     this.mounted = vm.mounted;
+    this.created = vm.created;
     this.name = vm.name;
     this._binds = {};
+    this._tickers = [];
     this.$el;
+    this.$Moon = Moon;
+
+    for (let key in Moon.$inserts) {
+      this[key] = Moon.$inserts[key];
+    }
 
     this._updateTimer = null;
 
@@ -76,15 +83,16 @@ class Component {
 
   $set(name: string, value: any) {
     if (this.data[name] !== value) {
+      this.__trigWatchers(name, value, this.data[name]);
       this.data[name] = value;
 
       clearTimeout(this._updateTimer);
       this._updateTimer = setTimeout(() => {
         let vNode = this.render(this._createVnode.bind(this));
-        diff(vNode, this._vNode, this);
-        this._updateVNode(vNode);
 
-        this._vNode = vNode;
+        diff(vNode, this._vNode, this);
+
+        this._vNode = this._updateVNode(vNode, this._vNode);
       }, 0);
     }
   }
@@ -93,13 +101,35 @@ class Component {
     this.$parent._binds[name] && this.$parent._binds[name].apply(this.$parent, value);
   }
 
+  $nextTick(callback) {
+    this._tickers.push(callback);
+  }
+
+  __trigTickers() {
+    for (let callback of this._tickers) {
+      callback();
+    }
+
+    this._tickers = [];
+  }
+
+  __trigWatchers(name, val, old) {
+    this.watch && this.watch[name] && this.watch[name].call(this, val, old);
+  }
+
   // Update this._vNode After $set, And Need To Keep Child<nodeType === "component">.component
-  _updateVNode(vNode) {
+  _updateVNode(vNode, oldVnode) {
+    vNode.children = vNode.children || [];
+
     for (let i = 0; i < vNode.children.length; i++) {
       if (vNode.children[i].nodeType === "component") {
         if (!(vNode.children[i].component instanceof Component)) {
-          vNode.children[i].component = this._vNode.children[i].component;
+          vNode.children[i] = Object.assign(vNode.children[i], {
+            component: oldVnode.children[i].component
+          });
         }
+      } else {
+        this._updateVNode(vNode.children[i], oldVnode.children[i]);
       }
     }
 
@@ -114,7 +144,7 @@ class Component {
     } else if (vNode.nodeType === 3) {
       ele = document.createTextNode(vNode.nodeValue);
     } else {
-      vNode.component = new Component(vNode.component, this);
+      vNode.component = new Component(vNode.component, this, this.$Moon);
       ele = vNode.component.$el;
     }
 
@@ -173,10 +203,14 @@ class Component {
 
   // Trigger By The Component Parent
   _updateChildComponent(props) {
+    for (let k in props) {
+      this.__trigWatchers(k, props[k], this.props[k]);
+    }
     this.props = Object.assign(this.props, props);
     let vNode = this.render(this._createVnode.bind(this));
 
     diff(vNode, this._vNode, this);
+    this._vNode = this._updateVNode(vNode, this._vNode);
   }
 
   __deepClone(obj) {
@@ -204,7 +238,9 @@ class Component {
     this.__transferMethods();
     this._vNode = this.render(this._createVnode.bind(this));
     this.$el = this._createElement(this._vNode);
+
+    this.created && this.created();
   }
 };
 
-export default Component;
+export { Component };

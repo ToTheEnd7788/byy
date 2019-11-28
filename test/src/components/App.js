@@ -1,5 +1,5 @@
 import TestOne from "./TestOne";
-import TestTwo from "./TestTwo";
+// import TestTwo from "./TestTwo";
 
 export default {
   name: "app",
@@ -9,6 +9,8 @@ export default {
     spanContent: "App-Page",
     name1: "byy",
     name2: "byy-1",
+
+    id: "",
 
     list: [
       {
@@ -28,16 +30,17 @@ export default {
 
   components: {
     "test-one": TestOne,
-    "test-two": TestTwo
+    // "test-two": TestTwo
   },
 
   mounted() {
-    // this.$set('name1', "BYY");
-    // // this.$set('name2', "BYY-2")
+    // console.log(3333, "App-mounted");
+  },
 
-    // setTimeout(() => {
-    //   this.$set('name1', "77776766767676")
-    // }, 1500);
+  watch: {
+    name1(val, old) {
+      console.log("watch-app", val, old);
+    }
   },
 
   methods: {
@@ -46,41 +49,9 @@ export default {
       console.log("From Child", name, child);
     },
 
-    clicked() {
-      // let temp = this.$get('list');
-      // // temp.splice(2, 1, {
-      // //   name: "99999999",
-      // //   id: 9
-      // // },{
-      // //   name: "wwwwwwwww",
-      // //   id: "www"
-      // // });
-
-      // temp.push({
-      //   name: "99999999",
-      //   id: 9
-      // })
-
-      // temp.push({
-      //   name: "wwwwwwwww",
-      //   id: "www"
-      // });
-
-      // this.$set('list', temp);
-    },
-
-    renderTestOne(c) {
-      return this.$get('list').map(item => {
-        return c('test-one', {
-          bind: {
-            clickedFromTestOne: this.trigFromChild
-          },
-          props: {
-            name: item.name,
-            byy: item.id
-          }
-        })
-      });
+    clicked(id) {
+      if (this.$get('id') !== id) this.$set('id', id);
+      else this.$set('id', "");
     }
   },
 
@@ -100,6 +71,29 @@ export default {
         borderRadius: "8px",
         marginLeft: "20px"
       }
-    }, this.renderTestOne(c))
+    }, [
+      c('div', {
+        className: "aaaa"
+      }, [
+        c('test-one', {
+          bind: {
+            clickedFromTestOne: this.clicked
+          },
+          props: {
+            id: this.$get('id'),
+            name: "1"
+          }
+        }),
+        c('test-one', {
+          bind: {
+            clickedFromTestOne: this.clicked
+          },
+          props: {
+            id: this.$get('id'),
+            name: "2"
+          }
+        })
+      ])
+    ])
   }
 };

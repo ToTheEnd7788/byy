@@ -1,7 +1,7 @@
 import "../utils/shim";
 import { isStr } from "../utils/index";
 import { setStyle } from "../utils/setAttributes";
-import Component from "../core/component";
+import { Component }  from "../core/component";
 
 function diff(n, o, vm) {
   let paches = comparer(n, o, "0");
@@ -43,11 +43,23 @@ function addPatch(paches, vm, n, o) {
       } else if (k === "style") {
         setStyle(targetEle, paches[p][k]);
       } else if (k === "replace") {
-        
+        let freshEle;
+
+        if (paches[p][k].nodeType === "component") {
+          let component = Object.assign(vm.components[paches[p][k].tag], {
+            props: paches[p][k].props
+          });
+
+          paches[p][k].component = new Component(component, vm, vm.$Moon);
+          freshEle = paches[p][k].component.$el;
+        } else {
+          freshEle = vm._createElement(paches[p][k]);
+        }
+        targetEle.parentNode.replaceChild(freshEle, targetEle);
       } else if (k === "add") {
         for (let node of paches[p][k]) {
           if (node.nodeType === "component") {
-            node.component = new Component(node.component, vm);
+            node.component = new Component(node.component, vm, vm.$Moon);
             targetEle.appendChild(node.component.$el);
           } else {
             targetEle.appendChild(vm._createElement(node));
@@ -59,7 +71,7 @@ function addPatch(paches, vm, n, o) {
           targetEle.removeChild(lastChild);
         }
       } else if (k === "delete") {
-        targetEle.parentNode.removeChild(targetEle.parentNode);
+        targetEle.parentNode.removeChild(targetEle);
       } else {
         targetEle[k] = paches[p][k];
       }
@@ -69,6 +81,7 @@ function addPatch(paches, vm, n, o) {
 
 
 function compareChilds(n, o, d) {
+  console.log(5555555, n, o);
   let res = {};
 
   if (n && !o) {
@@ -84,6 +97,7 @@ function compareChilds(n, o, d) {
       res[d] = Object.assign({}, res[d], {
         add: n.slice(o.length - n.length)
       });
+
       n = n.slice(0, o.length - n.length);
     } else if (n.length < o.length) {
       res[d] = Object.assign({}, res[d], {
@@ -124,10 +138,12 @@ function compareObjs(n, o) {
         }, "").slice(1);
       } else {
         for (let inner in n[k]) {
-          if (n[k][inner] !== o[k][inner]) {
-            res[k] = Object.assign({}, res[k], {
-              [inner]: n[k][inner]
-            });
+          if (n[k] && o[k]) {
+            if (n[k][inner] !== o[k][inner]) {
+              res[k] = Object.assign({}, res[k], {
+                [inner]: n[k][inner]
+              });
+            }
           }
         }
       }
@@ -169,7 +185,7 @@ function comparer(n, o, d) {
 
   if (nodeType !== onodeType || tag !== otag) {
     res[d] = Object.assign({}, res[d], {
-      repalce: n
+      replace: n
     });
   } else if (nodeValue !== onodeValue) {
     res[d] = Object.assign({}, res[d], {

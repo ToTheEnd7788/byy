@@ -1,11 +1,14 @@
-import { warn, isObj } from "../utils/index";
-import Component from "./component";
+import { isObj, warn } from "../utils/index";
+import { Component } from "./component";
+import { StaticContext } from "./instance";
 
-class Moon {
+class Moon extends StaticContext {
   $options: any;
   _vm: any;
 
-  constructor(options: object) {
+  constructor(options) {
+    super();
+
     this.$options = Object.assign({
       el: "app",
       $el: null,
@@ -28,32 +31,30 @@ class Moon {
     }
   }
 
-  _triggerMounter(component) {
-    component.mounted && component.mounted();
+  _triggerMounter(childs) {
+    for (let child of childs) {
+      if (child.nodeType === 'component') {
+        child.component.mounted && child.component.mounted();
+      }
 
-    let vNode = component._vNode,
-      { children } = vNode;
-
-    if (vNode.nodeType === "component") {
-      vNode.component.mounted && vNode.component.mounted();
-    }
-
-    if (children) {
-      for (let child of children) {
-        if (child.nodeType === "component") {
-          this._triggerMounter(child.component);
-        }
+      if (child.children) {
+        this._triggerMounter(child.children);
       }
     }
+  }
+
+  $mount() {
+    this.$options.$el.appendChild(this._vm.$el);
+    this._vm.mounted && this._vm.mounted();
+    this._triggerMounter(this._vm._vNode.children);
   }
 
   _render(pass, component) {
     if (pass === "byy") {
       if (isObj(component)) {
         this.$options.$el = document.querySelector(this.$options.el || this.$options.el);
-        this._vm = new Component(component);
-        this.$options.$el.appendChild(this._vm.$el);
-        this._triggerMounter(this._vm);
+        this._vm = new Component(component, null, Moon);
+        if (this.$options.autoRender) this.$mount();
       } else {
         warn(`You must init Moon with a component`);
       }
