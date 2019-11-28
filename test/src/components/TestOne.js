@@ -18,31 +18,24 @@ export default {
   },
 
   methods: {
-    test() {
-      this.$emit("clickedFromTestOne", this.$get('name'));
+    test(name) {
+      this.$emit("clickedFromTestOne", name);
     }
-  },
-
-  mounted() {
-    // console.log("test-one__mounted", this.BYY);
   },
 
   render(c) {
     return c('div', {
       className: "test-one",
-      on: {
-        "click.stop": [this.test]
-      },
       style: {
         borderBottom: "1px solid red"
       }
     }, [
       c('p', {
         on: {
-          "click.stop": [this.test]
+          "click.stop": [this.test, this.$get('name')]
         },
         className: "test-one__three"
-      }, [`${this.$get('id')}-${this.$get('name')}`])
+      }, [`${this.$get('byy')}-${this.$get('name')}`])
     ])
   }
 };

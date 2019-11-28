@@ -67,4 +67,4 @@ function setEvents(el: HTMLElement, event: object, ctx): void {
 }
 
 
-export{ setStyle, setAttibutes };
+export{ setStyle, setAttibutes, setEvents };

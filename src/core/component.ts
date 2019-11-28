@@ -124,7 +124,7 @@ class Component {
     for (let i = 0; i < vNode.children.length; i++) {
       if (vNode.children[i].nodeType === "component") {
         if (!(vNode.children[i].component instanceof Component)) {
-          vNode.children[i] = Object.assign(vNode.children[i], {
+          vNode.children[i].component = Object.assign(vNode.children[i], {
             component: oldVnode.children[i].component
           });
         }
@@ -186,7 +186,7 @@ class Component {
     if (c && c.length > 0) {
       children = c.reduce((acc, child) => {
         if (isObj(child)) acc.push(child);
-        else acc.push({ nodeType: 3, nodeValue: child });
+        else acc.push({ nodeType: 3, nodeValue: child, children: [] });
 
         return acc;
       }, []);
@@ -210,6 +210,7 @@ class Component {
     let vNode = this.render(this._createVnode.bind(this));
 
     diff(vNode, this._vNode, this);
+
     this._vNode = this._updateVNode(vNode, this._vNode);
   }
 

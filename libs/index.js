@@ -376,6 +376,9 @@ function addPatch(paches, vm, n, o) {
             else if (k === "delete") {
                 targetEle.parentNode.removeChild(targetEle);
             }
+            else if (k === "on") {
+                setEvents(targetEle, paches[p][k], vm);
+            }
             else {
                 targetEle[k] = paches[p][k];
             }
@@ -383,7 +386,6 @@ function addPatch(paches, vm, n, o) {
     }
 }
 function compareChilds(n, o, d) {
-    console.log(5555555, n, o);
     var res = {};
     if (n && !o) {
         res[d] = Object.assign({}, res[d], {
@@ -439,7 +441,12 @@ function compareObjs(n, o) {
             else {
                 for (var inner in n[k]) {
                     if (n[k] && o[k]) {
-                        if (n[k][inner] !== o[k][inner]) {
+                        var same = true;
+                        if (k === "on")
+                            same = sameEvents(n[k][inner], o[k][inner]);
+                        else
+                            same = n[k][inner] === o[k][inner];
+                        if (!same) {
                             res[k] = Object.assign({}, res[k], (_b = {},
                                 _b[inner] = n[k][inner],
                                 _b));
@@ -456,8 +463,22 @@ function compareObjs(n, o) {
         ? res
         : null;
 }
+function sameEvents(newArr, oldArr) {
+    var result = true;
+    if (newArr.length !== oldArr.length)
+        result = false;
+    else {
+        for (var i = 1; i < newArr.length; i++) {
+            if (newArr[i] !== oldArr[i]) {
+                result = false;
+                break;
+            }
+        }
+    }
+    return result;
+}
 function comparer(n, o, d) {
-    var res = {}, on = n.on, bind = n.bind, children = n.children, nodeType = n.nodeType, tag = n.tag, nodeValue = n.nodeValue, component = n.component, newObj = __rest(n, ["on", "bind", "children", "nodeType", "tag", "nodeValue", "component"]), oon = o.on, obind = o.bind, ochildren = o.children, onodeType = o.nodeType, otag = o.tag, onodeValue = o.nodeValue, ocomponent = o.component, oldObj = __rest(o, ["on", "bind", "children", "nodeType", "tag", "nodeValue", "component"]), childrenRes = compareChilds(children, ochildren, d);
+    var res = {}, bind = n.bind, children = n.children, nodeType = n.nodeType, tag = n.tag, nodeValue = n.nodeValue, component = n.component, newObj = __rest(n, ["bind", "children", "nodeType", "tag", "nodeValue", "component"]), obind = o.bind, ochildren = o.children, onodeType = o.nodeType, otag = o.tag, onodeValue = o.nodeValue, ocomponent = o.component, oldObj = __rest(o, ["bind", "children", "nodeType", "tag", "nodeValue", "component"]), childrenRes = compareChilds(children, ochildren, d);
     res[d] = compareObjs(newObj, oldObj);
     if (childrenRes)
         res = Object.assign({}, res, childrenRes);
@@ -568,7 +589,7 @@ var Component = (function () {
         for (var i = 0; i < vNode.children.length; i++) {
             if (vNode.children[i].nodeType === "component") {
                 if (!(vNode.children[i].component instanceof Component)) {
-                    vNode.children[i] = Object.assign(vNode.children[i], {
+                    vNode.children[i].component = Object.assign(vNode.children[i], {
                         component: oldVnode.children[i].component
                     });
                 }
@@ -622,7 +643,7 @@ var Component = (function () {
                 if (isObj(child))
                     acc.push(child);
                 else
-                    acc.push({ nodeType: 3, nodeValue: child });
+                    acc.push({ nodeType: 3, nodeValue: child, children: [] });
                 return acc;
             }, []);
         }

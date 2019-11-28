@@ -29,29 +29,37 @@ export default {
   },
 
   components: {
-    "test-one": TestOne,
-    // "test-two": TestTwo
-  },
-
-  mounted() {
-    // console.log(3333, "App-mounted");
-  },
-
-  watch: {
-    name1(val, old) {
-      console.log("watch-app", val, old);
-    }
+    "test-one": TestOne
   },
 
   methods: {
-    // test-one组件上报的事件
-    trigFromChild(name, child) {
-      console.log("From Child", name, child);
+    clicked() {
+      let temp = this.$get('list');
+
+      temp.unshift({
+        name: "77777",
+        id: 7
+      });
+
+      this.$set('list', temp);
     },
 
-    clicked(id) {
-      if (this.$get('id') !== id) this.$set('id', id);
-      else this.$set('id', "");
+    clickedFromTestOne(name) {
+      console.log("From Child", name);
+    },
+
+    renderTestOne(c) {
+      return this.$get('list').map(item => {
+        return c('test-one', {
+          bind: {
+            clickedFromTestOne: this.clickedFromTestOne
+          },
+          props: {
+            name: item.name,
+            byy: item.id
+          }
+        })
+      })
     }
   },
 
@@ -74,26 +82,7 @@ export default {
     }, [
       c('div', {
         className: "aaaa"
-      }, [
-        c('test-one', {
-          bind: {
-            clickedFromTestOne: this.clicked
-          },
-          props: {
-            id: this.$get('id'),
-            name: "1"
-          }
-        }),
-        c('test-one', {
-          bind: {
-            clickedFromTestOne: this.clicked
-          },
-          props: {
-            id: this.$get('id'),
-            name: "2"
-          }
-        })
-      ])
+      }, this.renderTestOne(c))
     ])
   }
 };

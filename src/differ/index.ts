@@ -1,6 +1,6 @@
 import "../utils/shim";
 import { isStr } from "../utils/index";
-import { setStyle } from "../utils/setAttributes";
+import { setStyle, setEvents } from "../utils/setAttributes";
 import { Component }  from "../core/component";
 
 function diff(n, o, vm) {
@@ -72,6 +72,8 @@ function addPatch(paches, vm, n, o) {
         }
       } else if (k === "delete") {
         targetEle.parentNode.removeChild(targetEle);
+      } else if (k === "on") {
+        setEvents(targetEle, paches[p][k], vm);
       } else {
         targetEle[k] = paches[p][k];
       }
@@ -81,7 +83,6 @@ function addPatch(paches, vm, n, o) {
 
 
 function compareChilds(n, o, d) {
-  console.log(5555555, n, o);
   let res = {};
 
   if (n && !o) {
@@ -139,7 +140,12 @@ function compareObjs(n, o) {
       } else {
         for (let inner in n[k]) {
           if (n[k] && o[k]) {
-            if (n[k][inner] !== o[k][inner]) {
+            let same = true;
+
+            if (k === "on") same = sameEvents(n[k][inner], o[k][inner]);
+            else same = n[k][inner] === o[k][inner];
+
+            if (!same) {
               res[k] = Object.assign({}, res[k], {
                 [inner]: n[k][inner]
               });
@@ -155,10 +161,25 @@ function compareObjs(n, o) {
     : null;
 }
 
+function sameEvents(newArr, oldArr) {
+  let result = true;
+
+  if (newArr.length !== oldArr.length) result = false;
+  else {
+    for (let i = 1; i < newArr.length; i++) {
+      if (newArr[i] !== oldArr[i]) {
+        result = false;
+        break;
+      }
+    }
+  }
+
+  return result;
+}
+
 function comparer(n, o, d) {
   let res = {},
     {
-      on,
       bind,
       children,
       nodeType,
@@ -168,7 +189,6 @@ function comparer(n, o, d) {
       ...newObj
     } = n,
     {
-      on: oon,
       bind: obind,
       children: ochildren,
       nodeType: onodeType,
