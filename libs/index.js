@@ -313,7 +313,7 @@ function setEvents(el, event, ctx) {
 function diff(n, o, vm) {
     var paches = comparer(n, o, "0");
     if (paches) {
-        addPatch(paches, vm, n, o);
+        addPatch(paches, vm, n);
     }
 }
 function getTargetElement(el, pos) {
@@ -335,7 +335,7 @@ function addPatch(paches, vm, n, o) {
         var targetEle = getTargetElement(vm.$el, p);
         for (var k in paches[p]) {
             if (k === "props") {
-                var component = getTargetComponent(o, p);
+                var component = getTargetComponent(n, p);
                 component._updateChildComponent(paches[p][k]);
             }
             else if (k === "style") {
@@ -359,7 +359,6 @@ function addPatch(paches, vm, n, o) {
                 for (var _i = 0, _a = paches[p][k]; _i < _a.length; _i++) {
                     var node = _a[_i];
                     if (node.nodeType === "component") {
-                        node.component = new Component(node.component, vm, vm.$Moon);
                         targetEle.appendChild(node.component.$el);
                     }
                     else {
@@ -558,9 +557,9 @@ var Component = (function () {
             this.data[name] = value;
             clearTimeout(this._updateTimer);
             this._updateTimer = setTimeout(function () {
-                var vNode = _this.render(_this._createVnode.bind(_this));
+                var vNode = _this._updateVNode(_this.render(_this._createVnode.bind(_this)), _this._vNode);
                 diff(vNode, _this._vNode, _this);
-                _this._vNode = _this._updateVNode(vNode, _this._vNode);
+                _this._vNode = vNode;
             }, 0);
         }
     };
@@ -589,9 +588,14 @@ var Component = (function () {
         for (var i = 0; i < vNode.children.length; i++) {
             if (vNode.children[i].nodeType === "component") {
                 if (!(vNode.children[i].component instanceof Component)) {
-                    vNode.children[i].component = Object.assign(vNode.children[i], {
-                        component: oldVnode.children[i].component
-                    });
+                    if (oldVnode.children[i]) {
+                        vNode.children[i] = Object.assign(vNode.children[i], {
+                            component: oldVnode.children[i].component
+                        });
+                    }
+                    else {
+                        vNode.children[i].component = new Component(vNode.children[i].component, this, this.$Moon);
+                    }
                 }
             }
             else {
@@ -655,9 +659,9 @@ var Component = (function () {
             this.__trigWatchers(k, props[k], this.props[k]);
         }
         this.props = Object.assign(this.props, props);
-        var vNode = this.render(this._createVnode.bind(this));
+        var vNode = this._updateVNode(this.render(this._createVnode.bind(this)), this._vNode);
         diff(vNode, this._vNode, this);
-        this._vNode = this._updateVNode(vNode, this._vNode);
+        this._vNode = vNode;
     };
     Component.prototype.__deepClone = function (obj) {
         var result = {};

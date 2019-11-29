@@ -38,7 +38,7 @@ function addPatch(paches, vm, n, o) {
 
     for (let k in paches[p]) {
       if (k === "props") {
-        let component = getTargetComponent(o, p);
+        let component = getTargetComponent(n, p);
         component._updateChildComponent(paches[p][k]);
       } else if (k === "style") {
         setStyle(targetEle, paches[p][k]);
@@ -59,7 +59,6 @@ function addPatch(paches, vm, n, o) {
       } else if (k === "add") {
         for (let node of paches[p][k]) {
           if (node.nodeType === "component") {
-            node.component = new Component(node.component, vm, vm.$Moon);
             targetEle.appendChild(node.component.$el);
           } else {
             targetEle.appendChild(vm._createElement(node));

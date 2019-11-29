@@ -88,11 +88,11 @@ class Component {
 
       clearTimeout(this._updateTimer);
       this._updateTimer = setTimeout(() => {
-        let vNode = this.render(this._createVnode.bind(this));
-
+        let vNode =
+          this._updateVNode(this.render(this._createVnode.bind(this)), this._vNode);
         diff(vNode, this._vNode, this);
 
-        this._vNode = this._updateVNode(vNode, this._vNode);
+        this._vNode = vNode;
       }, 0);
     }
   }
@@ -124,9 +124,13 @@ class Component {
     for (let i = 0; i < vNode.children.length; i++) {
       if (vNode.children[i].nodeType === "component") {
         if (!(vNode.children[i].component instanceof Component)) {
-          vNode.children[i].component = Object.assign(vNode.children[i], {
-            component: oldVnode.children[i].component
-          });
+          if (oldVnode.children[i]) {
+            vNode.children[i] = Object.assign(vNode.children[i], {
+              component: oldVnode.children[i].component
+            });
+          } else {
+            vNode.children[i].component = new Component(vNode.children[i].component, this, this.$Moon);
+          }
         }
       } else {
         this._updateVNode(vNode.children[i], oldVnode.children[i]);
@@ -207,11 +211,11 @@ class Component {
       this.__trigWatchers(k, props[k], this.props[k]);
     }
     this.props = Object.assign(this.props, props);
-    let vNode = this.render(this._createVnode.bind(this));
+    let vNode = this._updateVNode(this.render(this._createVnode.bind(this)), this._vNode);
 
     diff(vNode, this._vNode, this);
 
-    this._vNode = this._updateVNode(vNode, this._vNode);
+    this._vNode = vNode;
   }
 
   __deepClone(obj) {

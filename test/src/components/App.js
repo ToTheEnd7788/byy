@@ -36,16 +36,18 @@ export default {
     clicked() {
       let temp = this.$get('list');
 
-      temp.unshift({
+      temp.splice(0, 0, {
         name: "77777",
         id: 7
-      });
+      })
 
       this.$set('list', temp);
     },
 
     clickedFromTestOne(name) {
       console.log("From Child", name);
+      if (this.$get('id') !== name) this.$set('id', name);
+      else this.$set('id', "");
     },
 
     renderTestOne(c) {
@@ -56,7 +58,8 @@ export default {
           },
           props: {
             name: item.name,
-            byy: item.id
+            byy: item.id,
+            id: this.$get('id')
           }
         })
       })
