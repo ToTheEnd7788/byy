@@ -1,3 +1,8 @@
+/*!
+ * moon.js v123
+ * (c) 2018-2019 Horses Lee
+ * Released under the MIT License.
+ */
 /*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
@@ -62,7 +67,6 @@ function isStr(value) {
 function isArr(value) {
     return Object.prototype.toString.call(value) === "[object Array]";
 }
-//# sourceMappingURL=index.js.map
 
 if (!Function.prototype.bind) {
     Function.prototype.bind = function (o) {
@@ -157,8 +161,9 @@ if (typeof Object.assign !== 'function') {
         var to = Object(target);
         for (var index = 1; index < arguments.length; index++) {
             var nextSource = arguments[index];
-            if (nextSource != null) {
+            if (nextSource != null) { // Skip over if undefined or null
                 for (var nextKey in nextSource) {
+                    // Avoid bugs when hasOwnProperty is shadowed
                     if (Object.prototype.hasOwnProperty.call(nextSource, nextKey)) {
                         to[nextKey] = nextSource[nextKey];
                     }
@@ -232,7 +237,6 @@ if (!Array.prototype.indexOf) {
         return -1;
     };
 }
-//# sourceMappingURL=shim.js.map
 
 var eventFilter = {
     stop: function (e) {
@@ -308,7 +312,6 @@ function setEvents(el, event, ctx) {
         _loop_2(name);
     }
 }
-//# sourceMappingURL=setAttributes.js.map
 
 function diff(n, o, vm) {
     var paches = comparer(n, o, "0");
@@ -495,9 +498,8 @@ function comparer(n, o, d) {
         ? res
         : null;
 }
-//# sourceMappingURL=index.js.map
 
-var Component = (function () {
+var Component = /** @class */ (function () {
     function Component(vm, parent, Moon) {
         this.components = vm.components;
         this.data = vm.data;
@@ -583,12 +585,13 @@ var Component = (function () {
     Component.prototype.__trigWatchers = function (name, val, old) {
         this.watch && this.watch[name] && this.watch[name].call(this, val, old);
     };
+    // Update this._vNode After $set, And Need To Keep Child<nodeType === "component">.component
     Component.prototype._updateVNode = function (vNode, oldVnode) {
         vNode.children = vNode.children || [];
         for (var i = 0; i < vNode.children.length; i++) {
             if (vNode.children[i].nodeType === "component") {
                 if (!(vNode.children[i].component instanceof Component)) {
-                    if (oldVnode.children[i]) {
+                    if (oldVnode && oldVnode.children[i]) {
                         vNode.children[i] = Object.assign(vNode.children[i], {
                             component: oldVnode.children[i].component
                         });
@@ -599,7 +602,8 @@ var Component = (function () {
                 }
             }
             else {
-                this._updateVNode(vNode.children[i], oldVnode.children[i]);
+                var oldChildren = oldVnode && oldVnode.children[i];
+                this._updateVNode(vNode.children[i], oldChildren);
             }
         }
         return vNode;
@@ -654,6 +658,7 @@ var Component = (function () {
         return __assign(__assign({ tag: a, children: children }, b), { component: component,
             nodeType: nodeType });
     };
+    // Trigger By The Component Parent
     Component.prototype._updateChildComponent = function (props) {
         for (var k in props) {
             this.__trigWatchers(k, props[k], this.props[k]);
@@ -688,9 +693,8 @@ var Component = (function () {
     };
     return Component;
 }());
-//# sourceMappingURL=component.js.map
 
-var StaticContext = (function () {
+var StaticContext = /** @class */ (function () {
     function StaticContext() {
     }
     StaticContext.use = function (name, value) {
@@ -699,9 +703,8 @@ var StaticContext = (function () {
     StaticContext.$inserts = {};
     return StaticContext;
 }());
-//# sourceMappingURL=instance.js.map
 
-var Moon = (function (_super) {
+var Moon = /** @class */ (function (_super) {
     __extends(Moon, _super);
     function Moon(options) {
         var _this = _super.call(this) || this;
@@ -759,6 +762,5 @@ var Moon = (function (_super) {
     };
     return Moon;
 }(StaticContext));
-//# sourceMappingURL=index.js.map
 
 export default Moon;

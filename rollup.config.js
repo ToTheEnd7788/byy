@@ -12,6 +12,12 @@ module.exports = {
   ],
   output: {
     file: "libs/index.js",
-    format: "es"
+    format: "es",
+    banner:
+  '/*!\n' +
+  ` * moon.js v${123}\n` +
+  ` * (c) 2018-${new Date().getFullYear()} Horses Lee\n` +
+  ' * Released under the MIT License.\n' +
+  ' */'
   }
 };

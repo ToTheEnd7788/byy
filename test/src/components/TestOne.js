@@ -35,7 +35,7 @@ export default {
           "click.stop": [this.test, this.$get('name')]
         },
         className: "test-one__three"
-      }, [`${this.$get('id')}~~${this.$get('byy')}-${this.$get('name')}`])
+      }, [`${this.$get('id')}-${this.$get('name')}`])
     ])
   }
 };

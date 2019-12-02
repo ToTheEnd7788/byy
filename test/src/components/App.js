@@ -12,7 +12,11 @@ export default {
 
     id: "",
 
-    list: [
+    list: []
+  },
+
+  mounted() {
+    let list = [
       {
         name: "lb-1",
         id: 1
@@ -25,7 +29,11 @@ export default {
         name: "lb-3",
         id: 3
       }
-    ]
+    ];
+
+    setTimeout(() => {
+      this.$set('list', list);
+    }, 2000);
   },
 
   components: {
@@ -33,33 +41,19 @@ export default {
   },
 
   methods: {
-    clicked() {
-      let temp = this.$get('list');
-
-      temp.splice(0, 0, {
-        name: "77777",
-        id: 7
-      })
-
-      this.$set('list', temp);
-    },
-
     clickedFromTestOne(name) {
-      console.log("From Child", name);
-      if (this.$get('id') !== name) this.$set('id', name);
-      else this.$set('id', "");
+      console.log(777777, name);
     },
 
     renderTestOne(c) {
       return this.$get('list').map(item => {
         return c('test-one', {
+          props: {
+            id: item.id,
+            name: item.name
+          },
           bind: {
             clickedFromTestOne: this.clickedFromTestOne
-          },
-          props: {
-            name: item.name,
-            byy: item.id,
-            id: this.$get('id')
           }
         })
       })
