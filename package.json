@@ -6,7 +6,7 @@
   "repository": "https://github.com/ToTheEnd0314/byy",
   "author": "Horses Lee",
   "license": "MIT",
-  "private": true,
+  "private": false,
   "types": "./types/index.d.ts",
   "keywords": [
     "mvvm",
@@ -19,7 +19,7 @@
     "build-test": "cross-env CONFIG_NAME=webpack.config.js babel-node ./build/bundler.js",
     "dev-core": "rollup -c rollup.config.js -w",
     "build": "cross-env CONFIG_NAME=webpackTsConfigs babel-node ./scripts/build.js",
-    "prepublish": "npm run build"
+    "prepare": "npm run build"
   },
   "devDependencies": {
     "@babel/core": "^7.6.4",
