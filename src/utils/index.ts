@@ -1,5 +1,5 @@
 export function warn(content: string) {
-  console.error(`Moon Error:\n${content}`);
+  console.error(`Byy Error:\n${content}`);
 };
 
 export function isObj(value: any): boolean {

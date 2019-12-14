@@ -2,7 +2,7 @@ import { isObj, warn } from "../utils/index";
 import { Component } from "./component";
 import { StaticContext } from "./instance";
 
-class Moon extends StaticContext {
+class Byy extends StaticContext {
   $options: any;
   _vm: any;
 
@@ -53,10 +53,10 @@ class Moon extends StaticContext {
     if (pass === "byy") {
       if (isObj(component)) {
         this.$options.$el = document.querySelector(this.$options.el || this.$options.el);
-        this._vm = new Component(component, null, Moon);
+        this._vm = new Component(component, null, Byy);
         if (this.$options.autoRender) this.$mount();
       } else {
-        warn(`You must init Moon with a component`);
+        warn(`You must init Byy with a component`);
       }
     } else {
       warn(`The function named [_render] is a inner function, you can't call it directly`);
@@ -64,4 +64,4 @@ class Moon extends StaticContext {
   }
 }
 
-export default Moon;
+export default Byy;

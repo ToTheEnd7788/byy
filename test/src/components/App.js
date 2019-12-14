@@ -41,12 +41,23 @@ export default {
   },
 
   methods: {
+    clicked() {
+      let temp = this.list.slice(0);
+
+      temp.splice(1, 1, {
+        name: "lb-99",
+        id: 9
+      });
+
+      this.$set('list', temp);
+    },
+
     clickedFromTestOne(name) {
       console.log(777777, name);
     },
 
     renderTestOne(c) {
-      return this.$get('list').map(item => {
+      return this.list.map(item => {
         return c('test-one', {
           props: {
             id: item.id,

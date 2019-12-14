@@ -12,6 +12,6 @@ export default {
   render(c) {
     return c("div", {
       className: "test-two"
-    }, [this.$get("name")])
+    }, [this.name])
   }
 };

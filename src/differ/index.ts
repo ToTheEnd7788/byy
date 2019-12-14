@@ -50,7 +50,7 @@ function addPatch(paches, vm, n, o) {
             props: paches[p][k].props
           });
 
-          paches[p][k].component = new Component(component, vm, vm.$Moon);
+          paches[p][k].component = new Component(component, vm, vm.$Byy);
           freshEle = paches[p][k].component.$el;
         } else {
           freshEle = vm._createElement(paches[p][k]);

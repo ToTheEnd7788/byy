@@ -8,7 +8,7 @@ class Component {
   $el: HTMLElement;
   $parent?: object;
   watch?: object;
-  $Moon: any;
+  $Byy: any;
   render: Function;
   methods?: object;
   components?: object;
@@ -23,7 +23,7 @@ class Component {
   _updateTimer: any;
   _tickers: Array<Function>;
 
-  constructor(vm, parent?: object, Moon?: any) {
+  constructor(vm, parent?: object, Byy?: any) {
     this.components = vm.components;
     this.data = vm.data;
     this.props = vm.props;
@@ -36,10 +36,10 @@ class Component {
     this._binds = {};
     this._tickers = [];
     this.$el;
-    this.$Moon = Moon;
+    this.$Byy = Byy;
 
-    for (let key in Moon.$inserts) {
-      this[key] = Moon.$inserts[key];
+    for (let key in Byy.$inserts) {
+      this[key] = Byy.$inserts[key];
     }
 
     this._updateTimer = null;
@@ -82,9 +82,13 @@ class Component {
   }
 
   $set(name: string, value: any) {
+    console.log(33333333, value, this.data[name], this[name]);
     if (this.data[name] !== value) {
       this.__trigWatchers(name, value, this.data[name]);
       this.data[name] = value;
+      this.__transferDatas();
+
+      console.log(2222222, this);
 
       clearTimeout(this._updateTimer);
       this._updateTimer = setTimeout(() => {
@@ -129,7 +133,7 @@ class Component {
               component: oldVnode.children[i].component
             });
           } else {
-            vNode.children[i].component = new Component(vNode.children[i].component, this, this.$Moon);
+            vNode.children[i].component = new Component(vNode.children[i].component, this, this.$Byy);
           }
         }
       } else {
@@ -149,7 +153,7 @@ class Component {
     } else if (vNode.nodeType === 3) {
       ele = document.createTextNode(vNode.nodeValue);
     } else {
-      vNode.component = new Component(vNode.component, this, this.$Moon);
+      vNode.component = new Component(vNode.component, this, this.$Byy);
       ele = vNode.component.$el;
     }
 
@@ -212,6 +216,8 @@ class Component {
       this.__trigWatchers(k, props[k], this.props[k]);
     }
     this.props = Object.assign(this.props, props);
+
+    this.__transferDatas();
     let vNode = this._updateVNode(this.render(this._createVnode.bind(this)), this._vNode);
 
     diff(vNode, this._vNode, this);
@@ -240,7 +246,15 @@ class Component {
     });
   }
 
+  __transferDatas() {
+    Object.assign(this, {
+      ...this.props,
+      ...this.data
+    })
+  }
+
   _createComponent() {
+    this.__transferDatas();
     this.__transferMethods();
     this._vNode = this.render(this._createVnode.bind(this));
     this.$el = this._createElement(this._vNode);

@@ -61,7 +61,7 @@ function setEvents(el: HTMLElement, event: object, ctx): void {
         return acc;
       }, []);
 
-      handler.apply(ctx, params);
+      handler && handler.apply(ctx, params);
     }
   }
 }

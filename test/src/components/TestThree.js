@@ -9,6 +9,6 @@ export default {
   render(c) {
     return c('div', {
       className: "test-three"
-    }, [`${this.$get('name')}--${this.$get('byy')}`])
+    }, [`${this.name}--${this.byy}`])
   }
 };

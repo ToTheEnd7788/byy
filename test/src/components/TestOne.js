@@ -32,10 +32,10 @@ export default {
     }, [
       c('p', {
         on: {
-          "click.stop": [this.test, this.$get('name')]
+          "click.stop": [this.test, this.name]
         },
         className: "test-one__three"
-      }, [`${this.$get('id')}-${this.$get('name')}`])
+      }, [`${this.id}-${this.name}`])
     ])
   }
 };
