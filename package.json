@@ -1,6 +1,6 @@
 {
   "name": "byy",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "A Compatible Mvvm Structure",
   "main": "./libs/index.js",
   "repository": "https://github.com/ToTheEnd0314/byy",
