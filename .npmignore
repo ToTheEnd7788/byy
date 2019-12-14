@@ -1,0 +1,9 @@
+build
+dist
+/node_modules/
+scripts
+scr
+test
+types
+rollup.config.js
+tsconfig.json
