@@ -47,7 +47,7 @@ function setEvents(el: HTMLElement, event: object, ctx): void {
       [handler, ...params] = event[name];
 
       n = n === 'input' && XDomainRequest
-        ? "properchange"
+        ? "propertychange"
         : n;
 
     el[`on${n}`] = null;
