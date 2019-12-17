@@ -24,8 +24,6 @@ class VNode {
     this._vm = vm;
 
     this._init();
-
-    console.log(3333333, this);
   }
 
   _init() {

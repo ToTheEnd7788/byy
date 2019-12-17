@@ -82,13 +82,10 @@ class Component {
   }
 
   $set(name: string, value: any) {
-    console.log(33333333, value, this.data[name], this[name]);
     if (this.data[name] !== value) {
       this.__trigWatchers(name, value, this.data[name]);
       this.data[name] = value;
       this.__transferDatas();
-
-      console.log(2222222, this);
 
       clearTimeout(this._updateTimer);
       this._updateTimer = setTimeout(() => {
