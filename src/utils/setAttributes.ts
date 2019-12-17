@@ -46,7 +46,7 @@ function setEvents(el: HTMLElement, event: object, ctx): void {
     let [n, type] = name.split('.'),
       [handler, ...params] = event[name];
 
-      n = n === 'input' && XDomainRequest
+      n = n === 'input' && window.ActiveXObject
         ? "propertychange"
         : n;
 
