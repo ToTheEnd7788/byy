@@ -46,10 +46,15 @@ function setEvents(el: HTMLElement, event: object, ctx): void {
     let [n, type] = name.split('.'),
       [handler, ...params] = event[name];
 
+      n = n === 'input' && XDomainRequest
+        ? "properchange"
+        : n;
+
     el[`on${n}`] = null;
 
     el[`on${n}`] = e => {
       let evt = e || window.event;
+      evt.target = evt.target || evt.srcElement;
 
       if (type) {
         eventFilter[type] && eventFilter[type](evt);
